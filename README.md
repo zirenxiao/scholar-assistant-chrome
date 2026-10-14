@@ -1,53 +1,70 @@
-# Scholar Assistant (Chrome extension)
+# Scholar Assistant：谷歌学术学者主页统计插件（Chrome）
 
-Adds a statistics section to the **Cited by** box on Google Scholar profile pages (`/citations?user=...`),
-below Scholar's own citation table and chart. It starts expanded on every page load and can be collapsed from its header.
-It loads every publication on the profile automatically (100 per request, ~1 s apart) and computes:
+**中文** · [English](README.en.md)
 
-- **Overview (概览)**: papers and citations, then authorship — first / last / corresponding author counts with
-  their citations and h-index (sole-authored papers count as first author; a name ending in `*`, e.g. `Z Xiao*`,
-  marks the corresponding author) and mean/median team size — then one tile per ranking list, h / g / i10 / e-index,
-  m-quotient, academic age, mean/median citations, uncited papers, h-core share, last-5-year output and citations,
-  year-over-year citation growth. Charts: citations per year, papers per year, papers by citation count, byline
-  position. The owner's byline name is auto-detected and can be corrected at the bottom of the tab.
-- **Venues**: publication types (journal, conference, preprint, patent, …) and top venues with citations.
-- **Co-authors**: distinct and repeat co-authors, co-authored share, top co-authors.
-- **Rankings (排名名单)**: for each list in `data/rankings.json`, papers per tier with their citations and first-author
-  counts, journal/conference split, list-specific extras (mean impact factor, Top / 预警 journals), and a list of
-  matched papers filterable by tier or flag. Every list also gets a summary tile in Overview.
+一个 **Google Scholar（谷歌学术）学者主页分析**的 Chrome 插件：统计 h 指数、g 指数、引用数据，
+一作/通讯作者论文数和合作者，并为每篇论文标注**期刊/会议分区与等级**——CCF 推荐目录、JCR 分区与影响因子、
+中科院分区表、新锐期刊分区、国际期刊预警名单。适用于评估学者、准备简历、职称/求职材料，或快速了解一位学者的发表情况。
 
-  | List | File | Tiers | Extras |
+在 Google Scholar 学者主页（`/citations?user=...`）右侧 **Cited by** 框中、Scholar 自带的引用表和柱状图下方，
+加入一个“学者统计”区域；同时在左侧文章列表中标注一作/通讯论文和期刊会议的排名等级。
+打开主页后会自动加载该学者的全部论文（每次 100 篇，间隔约 1 秒）。
+
+![概览与左侧文章列表标注](docs/screenshots/overview-zh.png)
+
+![排名名单：中科院分区表 2025](docs/screenshots/rankings-zh.png)
+
+*截图使用虚构的演示主页（`test/harness.html`）；在 Scholar 上统计区域出现在相同位置。*
+
+## 功能
+
+- **概览**：论文数、总引用；署名统计——第一作者、末位作者、通讯作者的论文数及其引用和 h 指数
+  （独立作者的论文计为第一作者；作者名后带 `*` 的视为通讯作者，如 `Z Xiao*`），平均/中位作者数；
+  每个排名名单的汇总；h / g / i10 / e 指数、m 指数、学术年龄、篇均/中位引用、零引用论文、h 核心引用占比、
+  近 5 年发文与引用、引用同比增长。图表：每年获得引用、每年发表论文、论文引用次数分布、署名位置分布。
+  学者本人的署名会自动识别，识别不准时可在概览底部修改。
+- **期刊/会议**：发表类型（期刊、会议、预印本、专利等）分布，以及主要发表源的篇数和引用。
+- **合作者**：合作者人数、多次合作者、合作论文占比、主要合作者。
+- **排名名单**：每个名单各等级的论文数、引用、一作/通讯篇数，期刊/会议构成，名单特有信息
+  （平均影响因子、Top 期刊、预警期刊），以及可按等级或标记筛选的收录论文列表。每个名单在概览中也有一项汇总。
+
+  | 名单 | 文件 | 等级 | 额外信息 |
   |---|---|---|---|
-  | CCF 推荐目录 2026 | `CCF2026-UTF8.csv` | A / B / C | journals and conferences |
-  | 国际期刊预警名单 2025 | `GJQKYJMD2025.csv` | warning reason | warning list, exact names only |
-  | 中科院分区表 2025 | `FQBJCR2025-UTF8.csv` | 1–4区 (大类分区) | Top, 预警 marks |
-  | JCR 2025 | `JCR2025-UTF8.csv` | Q1–Q4 (best across categories) | impact factor |
-  | 新锐期刊分区 2026 | `XR2026-UTF8.csv` | 1–4区 (大类新锐分区) | Top, 预警 marks |
+  | CCF 推荐目录 2026 | `CCF2026-UTF8.csv` | A / B / C | 期刊和会议 |
+  | 国际期刊预警名单 2025 | `GJQKYJMD2025.csv` | 预警原因 | 预警名单，仅精确匹配名称 |
+  | 中科院分区表 2025 | `FQBJCR2025-UTF8.csv` | 1–4 区（大类分区） | Top、预警标注 |
+  | JCR 2025 | `JCR2025-UTF8.csv` | Q1–Q4（取各学科中最好的分区） | 影响因子 |
+  | 新锐期刊分区 2026 | `XR2026-UTF8.csv` | 1–4 区（大类新锐分区） | Top、预警标记 |
 
-**Article list marks.** Rows of Scholar's own article list (left) are marked too: first-author and
-corresponding-author papers get a tinted background, a "一作" / "通讯" badge and the scholar's name in bold, and each paper gets a badge per matching ranking
-list (e.g. `CCF-A`, `中科院-1区 Top`, `JCR-Q1 · IF 9.1`; top tiers are emphasized, warnings are red). Rows added by
-"Show more" are marked as they appear. Each mark can be switched off in the Rankings tab ("在左侧文章列表中标注").
+- **左侧文章列表标注**：一作和通讯论文整行浅蓝底色，显示“一作”/“通讯”标签，学者本人姓名加粗；
+  每篇论文按命中的名单显示等级标签（如 `CCF-A`、`中科院-1区 Top`、`JCR-Q1 · IF 9.1`；最高等级加粗，预警为红色）。
+  点击“Show more”新加载的论文也会自动标注。各项标注可在“排名名单”页的“在左侧文章列表中标注”中单独关闭。
+- **中英文界面**：在统计区域标题栏切换，默认跟随浏览器语言。
 
-UI is available in Chinese and English (toggle in the section header; defaults to the browser language).
+## 安装
 
-## Install
+1. 打开 `chrome://extensions`，开启右上角的**开发者模式**。
+2. 点击**加载已解压的扩展程序**，选择本文件夹。
+3. 打开任意 Google Scholar 学者主页，例如 `https://scholar.google.com/citations?user=JicYPdAAAAAJ`。
 
-1. Open `chrome://extensions` and turn on **Developer mode**.
-2. Click **Load unpacked** and pick this folder.
-3. Open any Google Scholar profile, for example `https://scholar.google.com/citations?user=JicYPdAAAAAJ`.
+## 数据来源
 
-## Ranking lists
+`data/` 中的排名数据（CCF、JCR、中科院分区表、新锐期刊分区表和国际期刊预警名单）来自
+**[ShowJCR](https://github.com/hitfyd/ShowJCR)**（作者 hitfyd），该项目整理自各数据的原始发布方
+（ccf.org.cn、fenqubiao.com、xr-scholar.com、ewl.fenqubiao.com 以及 Clarivate JCR）。感谢 ShowJCR 项目。
+ShowJCR 采用 GPL-3.0 许可证；各排名数据的权利归各自发布方所有。更新名单时，从 ShowJCR 获取新版 CSV 并重新生成索引（见下文）。
 
-Ranking lists live in `data/` and are declared in `data/rankings.json`. To add one (CORE, CAS 分区, a school's own list, ...):
+## 排名名单
 
-1. Put a UTF-8 CSV in `data/`, one row per venue, with a header row.
-2. Add an entry to `lists` in `data/rankings.json`:
+排名名单放在 `data/` 中，并在 `data/rankings.json` 中登记。新增一个名单（如 CORE、学校自定名单等）：
+
+1. 把 UTF-8 编码、带表头、每行一个期刊/会议的 CSV 放进 `data/`。
+2. 在 `data/rankings.json` 的 `lists` 中加入一项：
 
    ```json
    {
      "id": "core2023",
-     "name": "CORE 2023",
+     "name": { "zh": "CORE 2023", "en": "CORE 2023" },
      "shortName": "CORE",
      "file": "CORE2023.csv",
      "columns": { "abbr": "Acronym", "name": "Title", "tier": "Rank", "type": "Type" },
@@ -57,56 +74,52 @@ Ranking lists live in `data/` and are declared in `data/rankings.json`. To add o
    }
    ```
 
-   - `name`, `shortName`, tier `label`s and flag `label`s may be a plain string or `{ "zh": "1区", "en": "Zone 1" }`;
-     the UI shows the current language.
-   - `columns` maps your CSV's header names. Only `name` is required; `abbr`, `tier`, `type` and `field` are optional.
-   - `columns.tier` may also be a list of columns; the best tier across them is used (JCR quartiles per category).
-   - `tierPattern` (optional) is a regex whose first group is the tier, e.g. `"^\\s*(\\d)"` (as written in JSON) turns `4 [625/778]` into `4`.
-   - `tiers` (optional) lists the tier values to count, in display order; rows with other values are ignored.
-     Without it, tiers are the distinct values of the `tier` column in file order (or one tier if there is no `tier` column).
-   - `metric` (optional), e.g. `{ "column": "IF(2025)", "label": "IF", "decimals": 1 }`, is shown per paper and as a mean.
-   - `flags` (optional) mark venues, e.g. `{ "column": "Top", "equals": "是", "label": "Top" }`; use `contains` or
-     `notEmpty: true` instead of `equals` as needed, and `warn: true` to show the flag in red.
-   - `defaultType` (optional) sets `journal` or `conference` for every row when there is no `type` column.
-   - `kind: "warning"` (optional) marks a list of venues to avoid, such as the 国际期刊预警名单: it is shown in red
-     with warning wording, and it matches exact names only (`strict: true`), because a near-miss would flag the wrong journal.
-   - `aliases` maps venue names as Scholar prints them to an abbreviation or full name in the list,
-     for venues whose Scholar name differs a lot from the official one.
-3. Rebuild the index, then reload the extension:
+   - `name`、`shortName`、等级和标记的 `label` 可以是普通字符串，也可以是 `{ "zh": "1区", "en": "Zone 1" }`，界面按当前语言显示。
+   - `columns` 指定 CSV 的列名。只有 `name` 必填；`abbr`、`tier`、`type`、`field` 可选。
+   - `columns.tier` 也可以是多个列，取其中最好的等级（如 JCR 各学科分区）。
+   - `tierPattern`（可选）是正则表达式，取第一个分组作为等级，例如 JSON 中写 `"^\\s*(\\d)"` 可把 `4 [625/778]` 变成 `4`。
+   - `tiers`（可选）按显示顺序列出要统计的等级，其他取值的行会被忽略。
+     不写时，等级取 `tier` 列中出现的各个取值（按文件顺序）；没有 `tier` 列时只有一个等级。
+   - `metric`（可选），如 `{ "column": "IF(2025)", "label": "IF", "decimals": 1 }`，在每篇论文旁显示，并计算平均值。
+   - `flags`（可选）用于标记期刊，如 `{ "column": "Top", "equals": "是", "label": "Top" }`；也可用 `contains` 或
+     `notEmpty: true` 代替 `equals`，`warn: true` 表示以红色显示。
+   - `defaultType`（可选）在没有 `type` 列时，为所有行指定 `journal` 或 `conference`。
+   - `kind: "warning"`（可选）表示这是需要避开的名单（如国际期刊预警名单）：以红色和“预警”措辞显示，
+     并且只做名称精确匹配（`strict: true`），避免把名称相近的期刊误标为预警。
+   - `aliases` 把 Scholar 上显示的期刊/会议名称映射到名单中的缩写或全称，用于两者差异较大的情况。
+3. 重新生成索引，然后在 `chrome://extensions` 中刷新插件：
 
    ```bash
    node tools/build-index.js
    ```
 
-   With more than one list, the Rankings tab shows a selector; the choice is remembered.
+   有多个名单时，“排名名单”页顶部可以切换，选择会被记住。
 
-### The index
+### 索引
 
-The extension never reads the CSVs. `tools/build-index.js` merges all lists into `index/`: one record per
-distinct venue name holding its tier, metric and flags in every list, split into 64 small shard files by a hash
-of the venue key (`index/r/`), plus word postings for fuzzy matching (`index/t/`), abbreviations (`abbr.json`)
-and list descriptions (`meta.json`). At run time the extension computes the keys and words of the scholar's own
-venue strings and fetches only the shards they hash to — typically a few dozen files of under 100 KB each instead
-of ~12 MB of CSV. `index/` is generated: commit it after rebuilding, since Chrome loads the folder as-is.
+插件运行时不读取 CSV。`tools/build-index.js` 把所有名单合并到 `index/`：每个不同的期刊/会议名称一条记录，
+包含它在各名单中的等级、指标和标记；记录按名称键的哈希分成 64 个小文件（`index/r/`），另有用于模糊匹配的词索引
+（`index/t/`）、缩写表（`abbr.json`）和名单说明（`meta.json`）。运行时插件只计算该学者自己论文的发表源对应的键和词，
+并只读取它们所在的分片——通常是几十个不超过 100 KB 的文件，而不是约 12 MB 的 CSV。
+`index/` 是生成文件，重新生成后需要一起提交，因为 Chrome 直接加载整个文件夹。
 
-Venue matching (`src/rankings.js`) tries, in order: a parenthesised abbreviation such as "(TOG)", the exact
-normalized full name, a standalone abbreviation of 4+ letters (e.g. "CVPR 2020"), then a word-overlap match that
-also handles names Scholar truncated with "…". Workshops, Findings, companions and newsletters are never counted,
-and a venue that calls itself a conference is never credited to a journal of the same name (ICML vs *Machine Learning*).
-Matching logic lives in `src/rankings.js` and is shared by the build script (Node) and the extension.
+发表源匹配（`src/rankings.js`）依次尝试：括号中的缩写（如 "(TOG)"）、规范化后的完整名称、4 个字母以上的独立缩写
+（如 "CVPR 2020"），最后是词重叠匹配（也能处理被 Scholar 截断成 “…” 的名称）。Workshop、Findings、Companion、
+Newsletter 等附属出版物不计入；自称会议的发表源不会被算作同名期刊（如 ICML 与期刊 *Machine Learning*）。
+匹配逻辑在 `src/rankings.js` 中，构建脚本（Node）和插件共用。
 
-## Limitations
+## 局限
 
-- Scholar truncates long author lists with "...". Those papers are left out of team-size stats, and
-  last authorship can't be determined for them.
-- Venue names are normalized from Scholar's raw strings and publication types are keyword heuristics.
-- Co-authors are merged by first initial + surname, so namesakes can merge.
-- Ranking matches are heuristic: a heavily truncated or unusual venue string can be missed, and a book
-  chapter titled like a journal can be counted as that journal.
-- If Scholar shows a CAPTCHA partway through, the panel says so and shows stats for the papers loaded so far.
+- Scholar 会把较长的作者列表截断为 “...”，这些论文不计入平均作者数，也无法判断末位作者。
+- 发表源名称由 Scholar 的原始字符串规范化得到，发表类型为关键词启发式判断。
+- 合作者按“名首字母 + 姓”合并，同名者可能被合并。
+- 排名匹配是启发式的：被严重截断或写法特殊的发表源可能匹配不上，与某期刊同名的书籍章节可能被算作该期刊。
+- 如果加载中途 Scholar 弹出人机验证，统计区域会提示，并先显示已加载论文的统计。
 
-## Development
+## 开发
 
-`test/harness.html` renders the panel with synthetic data and no network access.
-Serve the repo root (for example `python -m http.server 8766`) and open `/test/harness.html`.
-`src/stats.js` has no DOM dependencies and can be `require`d from Node.
+`test/harness.html` 在虚构的演示主页上运行插件，不需要联网。在仓库根目录启动静态服务器
+（如 `python -m http.server 8766`），然后打开 `/test/harness.html`。
+URL 参数 `lang=zh|en`、`tab=<序号>`、`list=<名单 id>` 可预设显示内容；README 中的截图用无头 Chrome/Edge 生成，例如
+`msedge --headless=new --force-device-scale-factor=2 --window-size=1200,1080 --virtual-time-budget=10000 --screenshot=out.png "http://localhost:8766/test/harness.html?lang=zh&tab=3&list=cas2025"`。
+`src/stats.js` 和 `src/rankings.js` 不依赖 DOM，可在 Node 中 `require`。

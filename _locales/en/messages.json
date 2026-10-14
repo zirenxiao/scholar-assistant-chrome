@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Scholar Assistant: Google Scholar Stats",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "extDescription": {
+    "message": "Google Scholar profile analytics: h-index, citations, first/corresponding author, co-authors, CCF/JCR/CAS journal rankings.",
+    "description": "Extension description shown in Chrome and the Web Store (max 132 characters)."
+  }
+}

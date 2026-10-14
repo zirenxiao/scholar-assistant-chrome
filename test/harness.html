@@ -1,32 +1,67 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>Scholar Assistant harness</title>
 <style>
-  body { font-family: Arial, sans-serif; font-size: 13px; color: #222; margin: 0; padding: 20px; background: #fff; }
+  /* Close to Scholar's profile layout, so the extension renders as it would on the real page. */
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #222; margin: 0; background: #fff; }
+  .topbar { height: 48px; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 20px; font-size: 18px; color: #777; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
+  .profile { display: flex; gap: 20px; align-items: center; margin-bottom: 20px; }
+  .avatar { width: 96px; height: 96px; border-radius: 50%; background: #e8eaed; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #9aa0a6; }
+  #gsc_prf_in { font-size: 24px; }
+  .gsc_prf_il { color: #555; margin-top: 4px; }
   .layout { display: flex; gap: 32px; align-items: flex-start; }
   .main { flex: 1; min-width: 0; }
-  #gsc_rsb_cit { width: 301px; flex-shrink: 0; }
   #gsc_a_t { width: 100%; border-collapse: collapse; }
+  #gsc_a_t th { text-align: left; font-weight: normal; color: #1a0dab; font-size: 11px; padding: 10px 4px; border-bottom: 1px solid #ddd; background: #f8f9fa; }
   #gsc_a_t td { padding: 8px 4px; border-bottom: 1px solid #eee; vertical-align: top; }
   .gsc_a_at { color: #1a0dab; text-decoration: none; font-size: 15px; }
   .gs_gray { color: #777; }
-  .gsc_a_c, .gsc_a_y { width: 60px; text-align: right; }
+  .gsc_a_c, .gsc_a_y { width: 64px; text-align: right; }
+  #gsc_a_t th.num { text-align: right; }
+  #gsc_bpf_more { margin: 12px 0; padding: 6px 16px; border: 1px solid #ddd; background: #fff; border-radius: 3px; color: #555; cursor: pointer; }
+  #gsc_rsb_cit { width: 301px; flex-shrink: 0; }
   .gsc_rsb_header { font-size: 15px; font-weight: 400; margin: 0 0 8px; }
+  #gsc_rsb_st { width: 100%; border-collapse: collapse; }
+  #gsc_rsb_st th, #gsc_rsb_st td { padding: 4px 0; text-align: right; font-weight: normal; }
+  #gsc_rsb_st th:first-child, #gsc_rsb_st td:first-child { text-align: left; }
+  #gsc_rsb_st th { color: #777; border-bottom: 1px solid #eee; }
+  .hist { display: flex; align-items: flex-end; gap: 4px; height: 90px; margin-top: 12px; border-bottom: 1px solid #ddd; }
+  .hist div { flex: 1; background: #777; }
 </style></head>
 <body>
-<!-- Minimal stand-in for a Scholar profile page: article table (left) and Cited by box (right). -->
-<div id="gsc_prf_in">Jane Q Doe</div>
-<div class="layout">
-  <div class="main">
-    <table id="gsc_a_t"><tbody id="gsc_a_b"></tbody></table>
-    <button id="gsc_bpf_more" type="button">Show more</button>
+<!-- Stand-in for a Scholar profile page with fictional demo data (no real researcher). -->
+<div class="topbar">Scholar Assistant · demo profile</div>
+<div class="page">
+  <div class="profile">
+    <div class="avatar">JD</div>
+    <div><div id="gsc_prf_in">Jane Q. Doe</div><div class="gsc_prf_il">Professor of Computer Science, Example University</div></div>
   </div>
-  <div id="gsc_rsb_cit"><h3 class="gsc_rsb_header">Cited by</h3><p style="color:#777">(Scholar's citation table and chart)</p></div>
+  <div class="layout">
+    <div class="main">
+      <table id="gsc_a_t">
+        <thead><tr><th>TITLE</th><th class="num">CITED BY</th><th class="num">YEAR</th></tr></thead>
+        <tbody id="gsc_a_b"></tbody>
+      </table>
+      <button id="gsc_bpf_more" type="button">Show more</button>
+    </div>
+    <div id="gsc_rsb_cit">
+      <h3 class="gsc_rsb_header">Cited by</h3>
+      <table id="gsc_rsb_st"><thead><tr><th></th><th>All</th><th>Since 2021</th></tr></thead><tbody></tbody></table>
+      <div class="hist"></div>
+    </div>
+  </div>
 </div>
 <script>
-  // Stub chrome.* APIs used by content.js.
+  // Optional URL parameters (used for README screenshots): ?lang=zh|en&tab=<index>&list=<ranking list id>
+  const params = new URLSearchParams(location.search);
+  // Stub chrome.* APIs used by content.js; saved settings come from the URL parameters.
   window.chrome = {
     runtime: { getURL: (p) => '../' + p },
-    storage: { local: { _d: {}, get(k, cb) { cb({}); }, set(o) { Object.assign(this._d, o); } } },
+    storage: { local: {
+      _d: { ...(params.get('lang') && { lang: params.get('lang') }), ...(params.get('list') && { rankingId: params.get('list') }) },
+      get(k, cb) { cb({ ...this._d }); },
+      set(o) { Object.assign(this._d, o); },
+    } },
   };
   history.replaceState(null, '', location.pathname + '?user=TEST');
 </script>
@@ -37,11 +72,18 @@
 <script src="../src/charts.js"></script>
 <script src="../src/rowmarks.js"></script>
 <script>
-  // Replace network fetch with deterministic synthetic data.
+  // Deterministic fictional data; the network fetch is replaced below.
   let seed = 7;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const pick = (a) => a[Math.floor(rnd() * a.length)];
-  const coauthors = ['A Smith', 'B Chen', 'C Garcia', 'D Müller', 'E Wang', 'F Rossi', 'G Kim', 'H Patel', 'I Novak', 'J Silva', 'K Tanaka', 'L Dubois'];
+  const coauthors = ['A Smith', 'B Chen', 'C Garcia', 'D Müller', 'E Wang', 'F Rossi', 'G Kim', 'H Patel', 'I Novak', 'J Silva', 'K Tanaka', 'L Dubois',
+    'M Ivanova', 'N Okafor', 'O Larsen', 'P Moreau'];
+  const titleParts = [
+    ['Learning', 'Towards', 'Scalable', 'Robust', 'Efficient', 'Self-supervised', 'Sparse', 'Contrastive', 'Hierarchical', 'Adaptive'],
+    ['representations', 'transformers', 'retrieval', 'segmentation', 'reasoning', 'optimization', 'attention', 'diffusion models', 'graph embeddings'],
+    ['for visual recognition', 'for medical image analysis', 'in federated settings', 'for knowledge graphs', 'with limited labels',
+      'under distribution shift', 'for 3D scene understanding', 'for time-series forecasting'],
+  ];
   const venues = ['Nature 521 (7553), 436-444', 'Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 770-778',
     'Advances in neural information processing systems 33', 'arXiv preprint arXiv:2101.00001', 'IEEE Transactions on Pattern Analysis and Machine Intelligence 39 (6)',
     'Journal of Machine Learning Research 9 (Nov)', 'US Patent 11,234,567', 'International conference on machine learning, 1597-1607', '',
@@ -52,11 +94,27 @@
     const names = Array.from({ length: n - 1 }, () => pick(coauthors));
     names.splice(Math.floor(rnd() * n), 0, (rnd() < 0.9 ? 'JQ Doe' : 'J Doe') + (rnd() < 0.25 ? '*' : ''));
     const year = 2008 + Math.floor(rnd() * 18);
-    return { title: 'Paper ' + i, link: 'https://x/?citation_for_view=T:' + i, authorsRaw: names.join(', ') + (rnd() < 0.08 ? ', ...' : ''),
+    const title = `${pick(titleParts[0])} ${pick(titleParts[1])} ${pick(titleParts[2])}`;
+    return { title, link: 'https://x/?citation_for_view=T:' + i, authorsRaw: names.join(', ') + (rnd() < 0.08 ? ', ...' : ''),
       venueRaw: pick(venues), citations: Math.floor(Math.pow(rnd(), 3) * 800), year };
-  });
+  }).sort((a, b) => b.citations - a.citations); // Scholar lists by citations by default
   const hist = {}; for (let y = 2009; y <= 2026; y++) hist[y] = Math.round(40 * (y - 2008) ** 1.4 * (y === 2026 ? 0.8 : 1));
-  // Render the article table like Scholar does: 20 rows, then 20 more per "Show more" click.
+
+  // Cited by box: official totals and the citation histogram, as Scholar shows them.
+  (() => {
+    const cites = papers.map((p) => p.citations).sort((a, b) => b - a);
+    const h = cites.filter((c, i) => c >= i + 1).length;
+    const total = cites.reduce((a, b) => a + b, 0);
+    const recent = Object.entries(hist).filter(([y]) => y >= 2021).reduce((a, [, v]) => a + v, 0);
+    document.querySelector('#gsc_rsb_st tbody').innerHTML = [
+      ['Citations', total, recent], ['h-index', h, Math.round(h * 0.7)], ['i10-index', cites.filter((c) => c >= 10).length, 120],
+    ].map(([k, a, b]) => `<tr><td>${k}</td><td>${a}</td><td>${b}</td></tr>`).join('');
+    const max = Math.max(...Object.values(hist));
+    document.querySelector('.hist').innerHTML = Object.entries(hist).slice(-8)
+      .map(([, v]) => `<div style="height:${(v / max) * 100}%"></div>`).join('');
+  })();
+
+  // Article table like Scholar's: 20 rows, then 20 more per "Show more" click.
   let shown = 0;
   function showMore() {
     const body = document.getElementById('gsc_a_b');
@@ -82,8 +140,19 @@
   SA.scraper.isProfilePage = () => true;
   SA.scraper.fetchAll = async (id, onProgress) => {
     for (let k = 100; k <= papers.length + 99; k += 100) { onProgress(Math.min(k, papers.length)); await new Promise((r) => setTimeout(r, 300)); }
-    return { profile: { name: 'Jane Q Doe', affiliation: 'Test University', official: { citations: 1, h: 1, i10: 1 }, citationHistogram: hist }, papers, partial: false, error: null };
+    return { profile: { name: 'Jane Q. Doe', affiliation: 'Example University', official: null, citationHistogram: hist }, papers, partial: false, error: null };
   };
 </script>
 <script src="../src/content.js"></script>
+<script>
+  // ?tab=<index>: open that panel tab once the analysis has rendered.
+  if (params.get('tab')) {
+    const timer = setInterval(() => {
+      const tabs = document.querySelector('#scholar-assistant-root')?.shadowRoot.querySelectorAll('.sa-tab');
+      if (!tabs || !tabs.length) return;
+      clearInterval(timer);
+      tabs[Number(params.get('tab'))]?.click();
+    }, 100);
+  }
+</script>
 </body></html>

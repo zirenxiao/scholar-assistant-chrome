@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Scholar Assistant：谷歌学术学者统计",
+    "description": "Extension name shown in Chrome and the Web Store."
+  },
+  "extDescription": {
+    "message": "谷歌学术学者主页统计：h 指数、引用、一作/通讯作者、合作者，以及 CCF、JCR、中科院分区、新锐分区等期刊会议等级标注。",
+    "description": "Extension description shown in Chrome and the Web Store (max 132 characters)."
+  }
+}
