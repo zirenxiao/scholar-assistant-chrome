@@ -1,0 +1,89 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Scholar Assistant harness</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #222; margin: 0; padding: 20px; background: #fff; }
+  .layout { display: flex; gap: 32px; align-items: flex-start; }
+  .main { flex: 1; min-width: 0; }
+  #gsc_rsb_cit { width: 301px; flex-shrink: 0; }
+  #gsc_a_t { width: 100%; border-collapse: collapse; }
+  #gsc_a_t td { padding: 8px 4px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .gsc_a_at { color: #1a0dab; text-decoration: none; font-size: 15px; }
+  .gs_gray { color: #777; }
+  .gsc_a_c, .gsc_a_y { width: 60px; text-align: right; }
+  .gsc_rsb_header { font-size: 15px; font-weight: 400; margin: 0 0 8px; }
+</style></head>
+<body>
+<!-- Minimal stand-in for a Scholar profile page: article table (left) and Cited by box (right). -->
+<div id="gsc_prf_in">Jane Q Doe</div>
+<div class="layout">
+  <div class="main">
+    <table id="gsc_a_t"><tbody id="gsc_a_b"></tbody></table>
+    <button id="gsc_bpf_more" type="button">Show more</button>
+  </div>
+  <div id="gsc_rsb_cit"><h3 class="gsc_rsb_header">Cited by</h3><p style="color:#777">(Scholar's citation table and chart)</p></div>
+</div>
+<script>
+  // Stub chrome.* APIs used by content.js.
+  window.chrome = {
+    runtime: { getURL: (p) => '../' + p },
+    storage: { local: { _d: {}, get(k, cb) { cb({}); }, set(o) { Object.assign(this._d, o); } } },
+  };
+  history.replaceState(null, '', location.pathname + '?user=TEST');
+</script>
+<script src="../src/i18n.js"></script>
+<script src="../src/scraper.js"></script>
+<script src="../src/rankings.js"></script>
+<script src="../src/stats.js"></script>
+<script src="../src/charts.js"></script>
+<script src="../src/rowmarks.js"></script>
+<script>
+  // Replace network fetch with deterministic synthetic data.
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const pick = (a) => a[Math.floor(rnd() * a.length)];
+  const coauthors = ['A Smith', 'B Chen', 'C Garcia', 'D Müller', 'E Wang', 'F Rossi', 'G Kim', 'H Patel', 'I Novak', 'J Silva', 'K Tanaka', 'L Dubois'];
+  const venues = ['Nature 521 (7553), 436-444', 'Proceedings of the IEEE/CVF conference on computer vision and pattern recognition, 770-778',
+    'Advances in neural information processing systems 33', 'arXiv preprint arXiv:2101.00001', 'IEEE Transactions on Pattern Analysis and Machine Intelligence 39 (6)',
+    'Journal of Machine Learning Research 9 (Nov)', 'US Patent 11,234,567', 'International conference on machine learning, 1597-1607', '',
+    'European conference on computer vision, 740-755', 'Pattern Recognition 77, 354-377', 'Pattern Recognition Letters 30 (1)', 'Wireless Personal Communications 112 (3), 1-20',
+    'Nature communications 12 (1), 1-10', 'IEEE Access 8, 12345-12360', 'Scientific reports 7 (1), 1-12'];
+  const papers = Array.from({ length: 180 }, (_, i) => {
+    const n = 1 + Math.floor(rnd() * 6);
+    const names = Array.from({ length: n - 1 }, () => pick(coauthors));
+    names.splice(Math.floor(rnd() * n), 0, (rnd() < 0.9 ? 'JQ Doe' : 'J Doe') + (rnd() < 0.25 ? '*' : ''));
+    const year = 2008 + Math.floor(rnd() * 18);
+    return { title: 'Paper ' + i, link: 'https://x/?citation_for_view=T:' + i, authorsRaw: names.join(', ') + (rnd() < 0.08 ? ', ...' : ''),
+      venueRaw: pick(venues), citations: Math.floor(Math.pow(rnd(), 3) * 800), year };
+  });
+  const hist = {}; for (let y = 2009; y <= 2026; y++) hist[y] = Math.round(40 * (y - 2008) ** 1.4 * (y === 2026 ? 0.8 : 1));
+  // Render the article table like Scholar does: 20 rows, then 20 more per "Show more" click.
+  let shown = 0;
+  function showMore() {
+    const body = document.getElementById('gsc_a_b');
+    papers.slice(shown, shown + 20).forEach((p) => {
+      const tr = document.createElement('tr');
+      tr.className = 'gsc_a_tr';
+      tr.innerHTML = `<td class="gsc_a_t"><a class="gsc_a_at"></a><div class="gs_gray"></div><div class="gs_gray"></div></td>
+        <td class="gsc_a_c"><a class="gsc_a_ac"></a></td><td class="gsc_a_y"><span class="gsc_a_h"></span></td>`;
+      const a = tr.querySelector('.gsc_a_at');
+      a.textContent = p.title;
+      a.setAttribute('href', `/citations?view_op=view_citation&user=TEST&citation_for_view=${new URL(p.link).searchParams.get('citation_for_view')}`);
+      const [authors, venue] = tr.querySelectorAll('.gs_gray');
+      authors.textContent = p.authorsRaw;
+      venue.textContent = p.venueRaw;
+      tr.querySelector('.gsc_a_ac').textContent = p.citations || '';
+      tr.querySelector('.gsc_a_h').textContent = p.year;
+      body.appendChild(tr);
+    });
+    shown += 20;
+  }
+  showMore();
+  document.getElementById('gsc_bpf_more').addEventListener('click', showMore);
+  SA.scraper.isProfilePage = () => true;
+  SA.scraper.fetchAll = async (id, onProgress) => {
+    for (let k = 100; k <= papers.length + 99; k += 100) { onProgress(Math.min(k, papers.length)); await new Promise((r) => setTimeout(r, 300)); }
+    return { profile: { name: 'Jane Q Doe', affiliation: 'Test University', official: { citations: 1, h: 1, i10: 1 }, citationHistogram: hist }, papers, partial: false, error: null };
+  };
+</script>
+<script src="../src/content.js"></script>
+</body></html>

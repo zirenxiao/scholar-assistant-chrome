@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Scholar Assistant",
+  "version": "0.1.0",
+  "description": "Statistics for Google Scholar profiles: citation metrics, authorship, venues and co-authors.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://scholar.google.com/citations*",
+        "https://scholar.google.com.hk/citations*",
+        "https://scholar.google.com.tw/citations*",
+        "https://scholar.google.com.sg/citations*",
+        "https://scholar.google.com.au/citations*",
+        "https://scholar.google.co.uk/citations*",
+        "https://scholar.google.co.jp/citations*",
+        "https://scholar.google.co.kr/citations*",
+        "https://scholar.google.ca/citations*",
+        "https://scholar.google.de/citations*",
+        "https://scholar.google.fr/citations*",
+        "https://scholar.google.it/citations*",
+        "https://scholar.google.es/citations*",
+        "https://scholar.google.nl/citations*",
+        "https://scholar.google.ch/citations*",
+        "https://scholar.google.se/citations*",
+        "https://scholar.google.cn/citations*",
+        "https://scholar.google.co.in/citations*",
+        "https://scholar.google.com.br/citations*"
+      ],
+      "js": [
+        "src/i18n.js",
+        "src/scraper.js",
+        "src/rankings.js",
+        "src/stats.js",
+        "src/charts.js",
+        "src/rowmarks.js",
+        "src/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/panel.css", "index/*"],
+      "matches": ["https://*/*"]
+    }
+  ]
+}

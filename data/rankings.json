@@ -1,0 +1,202 @@
+{
+  "lists": [
+    {
+      "id": "ccf2026",
+      "name": "CCF 推荐目录 2026",
+      "shortName": "CCF",
+      "file": "CCF2026-UTF8.csv",
+      "columns": {
+        "abbr": "刊物名称",
+        "name": "Journal",
+        "tier": "CCF推荐类型",
+        "type": "CCF推荐类别（国际学术刊物/会议）",
+        "field": "领域"
+      },
+      "typeValues": {
+        "推荐国际学术刊物": "journal",
+        "推荐国际学术会议": "conference"
+      },
+      "tiers": [
+        {
+          "value": "A类",
+          "label": "A"
+        },
+        {
+          "value": "B类",
+          "label": "B"
+        },
+        {
+          "value": "C类",
+          "label": "C"
+        }
+      ],
+      "aliases": {
+        "Advances in Neural Information Processing Systems": "NeurIPS",
+        "Neural Information Processing Systems": "NeurIPS",
+        "NIPS": "NeurIPS",
+        "Computer Vision and Pattern Recognition": "CVPR",
+        "IEEE Conference on Computer Vision and Pattern Recognition": "CVPR",
+        "International Conference on Computer Vision": "ICCV",
+        "Proceedings of the AAAI Conference on Artificial Intelligence": "AAAI",
+        "Proceedings of the World Wide Web Conference": "WWW",
+        "The Web Conference": "WWW",
+        "Proceedings of the ACM Web Conference": "WWW",
+        "ACM SIGKDD International Conference on Knowledge Discovery and Data Mining": "SIGKDD",
+        "Knowledge Discovery and Data Mining": "SIGKDD",
+        "Proceedings of the CHI Conference on Human Factors in Computing Systems": "CHI",
+        "Proceedings of the SIGCHI Conference on Human Factors in Computing Systems": "CHI",
+        "ACM SIGGRAPH": "SIGGRAPH"
+      }
+    },
+    {
+      "id": "gjqkyjmd2025",
+      "name": "国际期刊预警名单 2025",
+      "shortName": "预警",
+      "kind": "warning",
+      "file": "GJQKYJMD2025.csv",
+      "defaultType": "journal",
+      "columns": {
+        "name": "Journal",
+        "tier": "预警原因（2025）"
+      }
+    },
+    {
+      "id": "cas2025",
+      "name": "中科院分区表 2025",
+      "shortName": "中科院",
+      "file": "FQBJCR2025-UTF8.csv",
+      "defaultType": "journal",
+      "columns": {
+        "name": "Journal",
+        "tier": "大类分区",
+        "field": "大类"
+      },
+      "tierPattern": "^\\s*(\\d)",
+      "tiers": [
+        {
+          "value": "1",
+          "label": "1区"
+        },
+        {
+          "value": "2",
+          "label": "2区"
+        },
+        {
+          "value": "3",
+          "label": "3区"
+        },
+        {
+          "value": "4",
+          "label": "4区"
+        }
+      ],
+      "flags": [
+        {
+          "column": "Top",
+          "equals": "是",
+          "label": "Top"
+        },
+        {
+          "column": "标注",
+          "contains": "预警",
+          "label": "预警",
+          "warn": true
+        }
+      ],
+      "aliases": {
+        "Proceedings of the National Academy of Sciences": "PROCEEDINGS OF THE NATIONAL ACADEMY OF SCIENCES OF THE UNITED STATES OF AMERICA"
+      }
+    },
+    {
+      "id": "jcr2025",
+      "name": "JCR 2025",
+      "shortName": "JCR",
+      "file": "JCR2025-UTF8.csv",
+      "defaultType": "journal",
+      "columns": {
+        "name": "Journal",
+        "tier": [
+          "IF Quartile(2025)_1",
+          "IF Quartile(2025)_2",
+          "IF Quartile(2025)_3",
+          "IF Quartile(2025)_4",
+          "IF Quartile(2025)_5",
+          "IF Quartile(2025)_6"
+        ]
+      },
+      "tiers": [
+        {
+          "value": "Q1",
+          "label": "Q1"
+        },
+        {
+          "value": "Q2",
+          "label": "Q2"
+        },
+        {
+          "value": "Q3",
+          "label": "Q3"
+        },
+        {
+          "value": "Q4",
+          "label": "Q4"
+        }
+      ],
+      "metric": {
+        "column": "IF(2025)",
+        "label": "IF",
+        "decimals": 1
+      },
+      "aliases": {
+        "Proceedings of the National Academy of Sciences": "PROCEEDINGS OF THE NATIONAL ACADEMY OF SCIENCES OF THE UNITED STATES OF AMERICA"
+      }
+    },
+    {
+      "id": "xr2026",
+      "name": "新锐期刊分区 2026",
+      "shortName": "新锐",
+      "file": "XR2026-UTF8.csv",
+      "defaultType": "journal",
+      "columns": {
+        "name": "Journal",
+        "tier": "大类新锐分区",
+        "field": "大类中文名"
+      },
+      "tierPattern": "^\\s*(\\d)",
+      "tiers": [
+        {
+          "value": "1",
+          "label": "1区"
+        },
+        {
+          "value": "2",
+          "label": "2区"
+        },
+        {
+          "value": "3",
+          "label": "3区"
+        },
+        {
+          "value": "4",
+          "label": "4区"
+        }
+      ],
+      "flags": [
+        {
+          "column": "Top",
+          "equals": "Top",
+          "label": "Top"
+        },
+        {
+          "column": "预警标记",
+          "notEmpty": true,
+          "label": "预警",
+          "warn": true
+        }
+      ],
+      "aliases": {
+        "Proceedings of the National Academy of Sciences": "PROCEEDINGS OF THE NATIONAL ACADEMY OF SCIENCES OF THE UNITED STATES OF AMERICA"
+      }
+    }
+  ]
+}
