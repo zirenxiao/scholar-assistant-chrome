@@ -3,6 +3,7 @@
   const { scraper, stats, charts, i18n } = SA;
   const { el } = charts;
   const t = i18n.t;
+  const L = i18n.L; // localizes ranking-list strings that may be { zh, en }
 
   if (!scraper.isProfilePage()) return;
   const userId = scraper.getUserId();
@@ -56,8 +57,8 @@
   const chartWidth = () => Math.max(240, Math.round(panel.clientWidth || 300));
   const pct = (x) => (x == null ? '—' : `${(x * 100).toFixed(1)}%`);
 
-  function tile(label, value, sub, extraClass = '') {
-    const d = el('div', { class: `sa-tile ${extraClass}`.trim() });
+  function tile(label, value, sub, extraClass = '', title = '') {
+    const d = el('div', { class: `sa-tile ${extraClass}`.trim(), title });
     d.append(el('div', { class: 'sa-tile-label', text: label }), el('div', { class: 'sa-tile-value', text: value }));
     if (sub) d.appendChild(el('div', { class: 'sa-tile-sub', text: sub }));
     return d;
@@ -97,18 +98,33 @@
   }
 
   // ---- tabs ----
+  // Overview: totals, then authorship (merged from the former Authorship tab), ranking lists and metrics.
   function renderOverview(r) {
     const b = r.basic;
+    const a = r.authorship;
+    const g = a.groups;
     const off = state.data.profile.official;
     const now = new Date().getFullYear();
+    const n = b.papers || 1;
+    const sub = (x) => t('citesH', { c: num(x.citations), h: x.h });
     const growth = b.citesGrowth == null ? '' : t('growth', { v: `${b.citesGrowth >= 0 ? '+' : ''}${(b.citesGrowth * 100).toFixed(0)}%` });
     const histYears = Object.keys(state.data.profile.citationHistogram).map(Number);
     const histFrom = histYears.length ? Math.min(...histYears) : Infinity;
     const yearsWithCites = r.perYear.filter((y) => y.year >= histFrom);
+    const posRows = [
+      ['posFirst', g.first], ['posLast', g.last], ['posMiddle', g.middle],
+      ['posHidden', g.hidden], ['posUnmatched', g.unmatched],
+    ].filter(([k, x]) => x.count > 0 || !['posHidden', 'posUnmatched'].includes(k));
+    const distKeys = Object.keys(a.positionDist).sort((x, y) => parseInt(x, 10) - parseInt(y, 10));
+
     return [
       grid(
         tile(t('papers'), num(b.papers)),
         tile(t('citations'), num(b.citations)),
+        tile(t('posFirst'), num(g.first.count), sub(g.first)),
+        tile(t('posLast'), num(g.last.count), sub(g.last)),
+        tile(t('posCorresponding'), num(a.corresponding.count), sub(a.corresponding)),
+        tile(t('meanAuthors'), num(a.meanAuthors, 1), t('medianAuthorsSub', { v: num(a.medianAuthors, 1) })),
         ...r.rankings.map((rk) => rankingTile(rk, b.papers)),
         tile(t('hIndex'), num(b.h)),
         tile(t('gIndex'), num(b.g)),
@@ -134,30 +150,21 @@
           label: String(y.year), value: y.papers, tip: t('citesOfPapers', { n: y.citesOfPapers.toLocaleString() }),
         })), { width: chartWidth(), unit: t('papersUnit') })),
       section(t('chartBuckets'), charts.hbars(r.buckets.map((x) => ({
-        label: x.label, value: x.count, valueText: `${x.count} · ${pct(x.count / (b.papers || 1))}`,
+        label: x.label, value: x.count, valueText: `${x.count} · ${pct(x.count / n)}`,
       })))),
+      section(t('chartPositions'), charts.hbars(posRows.map(([k, x]) => ({
+        label: t(k), value: x.count, valueText: `${x.count} · ${pct(x.count / n)}`, sub: sub(x),
+      })))),
+      section(t('chartPositionIndex'), charts.barChart(
+        distKeys.map((k) => ({ label: k, value: a.positionDist[k], tip: t('positionNth', { n: k }) })), { width: chartWidth(), unit: t('papersUnit'), height: 120 })),
+      section(t('selfName'), selfNameField(r)),
+      note(`${t('soleNote')} ${t('corrNote')}`),
+      a.truncatedCount ? note(t('authorNote', { n: a.truncatedCount })) : null,
     ];
   }
 
-  // One overview tile per ranking list: tier counts for rankings, a total for warning lists.
-  function rankingTile(rk, papers) {
-    const share = pct(papers ? rk.total / papers : 0);
-    if (rk.kind === 'warning') {
-      return tile(t('warnTile', { s: rk.shortName }), num(rk.total), rk.total ? t('warnShare', { p: share }) : t('warnNone'), rk.total ? 'sa-tile-warn' : '');
-    }
-    return tile(`${rk.shortName} ${rk.tiers.map((x) => x.label).join('/')}`, rk.tiers.map((x) => x.count).join(' / '),
-      t('rankedShare', { n: rk.total, p: share }));
-  }
-
-  // Ranking lists and warning lists share a layout but not their wording.
-  const rankText = (rk, key, vars) => t(rk.kind === 'warning' ? key.replace(/^rank/, 'warn') : key, vars);
-
-  function renderAuthorship(r) {
-    const a = r.authorship;
-    const g = a.groups;
-    const sub = (x) => t('citesH', { c: num(x.citations), h: x.h });
-    const n = r.basic.papers || 1;
-
+  // Lets the user correct the auto-detected byline name (e.g. "J Smith"); Enter re-runs the analysis.
+  function selfNameField(r) {
     const input = el('input', { class: 'sa-input', type: 'text', value: state.selfOverride || r.selfKey.replace(/\b\w/g, (c) => c.toUpperCase()), spellcheck: 'false' });
     input.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
@@ -165,33 +172,26 @@
       store.set({ [`self:${userId}`]: state.selfOverride });
       analyze();
     });
-    const nameRow = el('label', { class: 'sa-field' });
-    nameRow.append(el('span', { text: t('selfName') }), input, el('span', { class: 'sa-field-hint', text: t('selfNameHint') }));
-
-    const posRows = [
-      ['posFirst', g.first], ['posLast', g.last], ['posMiddle', g.middle],
-      ['posHidden', g.hidden], ['posUnmatched', g.unmatched],
-    ].filter(([k, x]) => x.count > 0 || !['posHidden', 'posUnmatched'].includes(k));
-    const distKeys = Object.keys(a.positionDist).sort((x, y) => parseInt(x, 10) - parseInt(y, 10));
-
-    return [
-      nameRow,
-      grid(
-        tile(t('posFirst'), num(g.first.count), sub(g.first)),
-        tile(t('posLast'), num(g.last.count), sub(g.last)),
-        tile(t('posCorresponding'), num(a.corresponding.count), sub(a.corresponding)),
-        tile(t('meanAuthors'), num(a.meanAuthors, 1)),
-        tile(t('medianAuthors'), num(a.medianAuthors, 1)),
-      ),
-      section(t('chartPositions'), charts.hbars(posRows.map(([k, x]) => ({
-        label: t(k), value: x.count, valueText: `${x.count} · ${pct(x.count / n)}`, sub: sub(x),
-      })))),
-      section(t('chartPositionIndex'), charts.barChart(
-        distKeys.map((k) => ({ label: k, value: a.positionDist[k], tip: t('positionNth', { n: k }) })), { width: chartWidth(), unit: t('papersUnit'), height: 120 })),
-      note(`${t('soleNote')} ${t('corrNote')}`),
-      a.truncatedCount ? note(t('authorNote', { n: a.truncatedCount })) : null,
-    ];
+    const field = el('label', { class: 'sa-field' });
+    field.append(input, el('span', { class: 'sa-field-hint', text: t('selfNameHint') }));
+    return field;
   }
+
+  // One overview tile per ranking list: tier counts for rankings, a total for warning lists.
+  function rankingTile(rk, papers) {
+    const share = pct(papers ? rk.total / papers : 0);
+    const short = L(rk.shortName);
+    if (rk.kind === 'warning') {
+      return tile(t('warnTile', { s: short }), num(rk.total), rk.total ? t('warnShare', { p: share }) : t('warnNone'), rk.total ? 'sa-tile-warn' : '');
+    }
+    // "CCF A/B/C" fits a tile; long tier names ("Zone 1/Zone 2/...") fall back to "CAS by tier".
+    const full = `${short} ${rk.tiers.map((x) => L(x.label)).join('/')}`;
+    const label = full.length <= 18 ? full : t('byTier', { s: short });
+    return tile(label, rk.tiers.map((x) => x.count).join(' / '), t('rankedShare', { n: rk.total, p: share }), '', full);
+  }
+
+  // Ranking lists and warning lists share a layout but not their wording.
+  const rankText = (rk, key, vars) => t(rk.kind === 'warning' ? key.replace(/^rank/, 'warn') : key, vars);
 
   const TYPE_KEYS = { journal: 'typeJournal', conference: 'typeConference', preprint: 'typePreprint', patent: 'typePatent', thesis: 'typeThesis', book: 'typeBook', other: 'typeOther', unknown: 'typeUnknown' };
   const yearSpan = (a, b) => (a ? (a === b ? String(a) : `${a}–${b}`) : '—');
@@ -260,7 +260,7 @@
     };
     check(t('firstShort'), state.rowMarks.first, (v) => setRowMark((m) => { m.first = v; }));
     check(t('corrShort'), state.rowMarks.corresponding !== false, (v) => setRowMark((m) => { m.corresponding = v; }));
-    r.rankings.forEach((rk) => check(rk.name, state.rowMarks.lists[rk.id] !== false,
+    r.rankings.forEach((rk) => check(L(rk.name), state.rowMarks.lists[rk.id] !== false,
       (v) => setRowMark((m) => { m.lists[rk.id] = v; })));
     return section(t('rowMarks'), box);
   }
@@ -274,7 +274,7 @@
     if (r.rankings.length > 1) {
       const select = el('select', { class: 'sa-select' });
       r.rankings.forEach((x) => {
-        const o = el('option', { value: x.id, text: x.name });
+        const o = el('option', { value: x.id, text: L(x.name) });
         o.selected = x.id === rk.id;
         select.appendChild(o);
       });
@@ -288,45 +288,44 @@
       field.append(el('span', { text: t('rankList') }), select);
       out.push(field);
     } else {
-      out.push(el('div', { class: 'sa-field', text: rk.name }));
+      out.push(el('div', { class: 'sa-field', text: L(rk.name) }));
     }
 
     out.push(grid(
       tile(rankText(rk, 'rankTotal'), num(rk.total), pct(rk.total / n), rk.kind === 'warning' && rk.total ? 'sa-tile-warn' : ''),
       tile(rankText(rk, 'rankCites'), num(rk.citations), pct(r.basic.citations ? rk.citations / r.basic.citations : 0)),
-      ...rk.tiers.map((x) => tile(`${rk.shortName}-${x.label}`, num(x.count), t('rankTierSub', { f: x.firstAuthor, c: num(x.citations) }))),
+      ...rk.tiers.map((x) => tile(`${L(rk.shortName)}-${L(x.label)}`, num(x.count), t('rankTierSub', { f: x.firstAuthor, c: num(x.citations) }))),
       rk.metric ? tile(t('metricMean', { l: rk.metric.label }), num(rk.metric.mean, rk.metric.decimals),
         t('metricMax', { v: num(rk.metric.max, rk.metric.decimals) })) : null,
-      ...rk.flags.map((f) => tile(t('flagTile', { f: f.label }), num(f.count), pct(f.count / n), f.warn && f.count ? 'sa-tile-warn' : '')),
+      ...rk.flags.map((f) => tile(t('flagTile', { f: L(f.label) }), num(f.count), pct(f.count / n), f.warn && f.count ? 'sa-tile-warn' : '')),
     ));
 
     out.push(section(rankText(rk, 'rankDist'), charts.hbars(rk.tiers.map((x) => ({
-      label: `${rk.shortName}-${x.label}`, value: x.count,
+      label: `${L(rk.shortName)}-${L(x.label)}`, value: x.count,
       valueText: `${x.count} · ${pct(x.count / n)}`,
       sub: t('rankTierDetail', { j: x.journal, c: x.conference, h: x.h }),
     })))));
 
     // Paper list with a tier filter.
     const filter = el('div', { class: 'sa-chips' });
-    // Filter values: '' (all), a tier value, or "flag:<label>".
-    [['', t('rankAll')], ...rk.tiers.map((x) => [x.value, `${x.label} (${x.count})`]),
-      ...rk.flags.filter((f) => f.count).map((f) => [`flag:${f.label}`, `${f.label} (${f.count})`])].forEach(([v, label]) => {
+    // Filter values: '' (all), a tier value, or "flag:<index>".
+    [['', t('rankAll')], ...rk.tiers.map((x) => [x.value, `${L(x.label)} (${x.count})`]),
+      ...rk.flags.map((f, i) => [f, i]).filter(([f]) => f.count).map(([f, i]) => [`flag:${i}`, `${L(f.label)} (${f.count})`])].forEach(([v, label]) => {
       const chip = el('button', { type: 'button', class: `sa-chip${state.rankTier === v ? ' sa-chip-active' : ''}`, text: label });
       chip.addEventListener('click', () => { state.rankTier = v; state.rankShowAll = false; render(); });
       filter.appendChild(chip);
     });
     const list = rk.papers.filter((p) => !state.rankTier || p.tier === state.rankTier
-      || (state.rankTier.startsWith('flag:') && p.flags.includes(state.rankTier.slice(5))));
+      || (state.rankTier.startsWith('flag:') && p.flags.includes(Number(state.rankTier.slice(5)))));
     const shown = state.rankShowAll ? list : list.slice(0, RANK_PREVIEW);
     const ul = el('ul', { class: 'sa-papers' });
     shown.forEach((p) => {
       const li = el('li');
       const a = el('a', { href: p.link, text: p.title, target: '_blank', rel: 'noopener' });
       const meta = el('div', { class: 'sa-paper-meta', title: displayName(p.venue) });
-      const warnFlags = new Set(rk.flags.filter((f) => f.warn).map((f) => f.label));
       meta.append(
-        el('span', { class: `sa-badge${rk.kind === 'warning' ? ' sa-badge-warn' : ''}`, text: `${rk.shortName}-${p.tierLabel}` }),
-        ...p.flags.map((f) => el('span', { class: `sa-badge${warnFlags.has(f) ? ' sa-badge-warn' : ''}`, text: f })),
+        el('span', { class: `sa-badge${rk.kind === 'warning' ? ' sa-badge-warn' : ''}`, text: `${L(rk.shortName)}-${L(p.tierLabel)}` }),
+        ...p.flags.map((i) => el('span', { class: `sa-badge${rk.flags[i].warn ? ' sa-badge-warn' : ''}`, text: L(rk.flags[i].label) })),
         document.createTextNode([p.abbr || displayName(p.venue), p.year,
           rk.metric && p.metric != null ? `${rk.metric.label} ${num(p.metric, rk.metric.decimals)}` : '',
           `${num(p.citations)} ${t('citesUnit')}`,
@@ -348,13 +347,11 @@
     return out;
   }
 
-  // A tab label is an i18n key, or a function of the analysis result.
   const TABS = [
     ['overview', 'tabOverview', renderOverview],
-    ['authorship', 'tabAuthorship', renderAuthorship],
     ['venues', 'tabVenues', renderVenues],
     ['coauthors', 'tabCoauthors', renderCoauthors],
-    ['rankings', (r) => activeRanking(r)?.shortName || t('tabRankings'), renderRankings],
+    ['rankings', 'tabRankings', renderRankings],
   ];
 
   // ---- render ----
@@ -395,8 +392,7 @@
 
     const nav = el('nav', { class: 'sa-tabs', role: 'tablist' });
     TABS.forEach(([id, label]) => {
-      const text = typeof label === 'function' ? label(state.result) : t(label);
-      const b = el('button', { type: 'button', role: 'tab', class: `sa-tab${state.tab === id ? ' sa-tab-active' : ''}`, text, 'aria-selected': String(state.tab === id) });
+      const b = el('button', { type: 'button', role: 'tab', class: `sa-tab${state.tab === id ? ' sa-tab-active' : ''}`, text: t(label), 'aria-selected': String(state.tab === id) });
       b.addEventListener('click', () => { state.tab = id; render(); });
       nav.appendChild(b);
     });

@@ -12,7 +12,7 @@ SA.i18n = (() => {
       analyzing: '正在分析…',
       partial: 'Google Scholar 中断了加载（{err}），以下统计仅基于已获取的 {n} 篇论文。请完成页面上的人机验证后点击“重新加载”。',
       failed: '加载失败：{err}',
-      tabOverview: '概览', tabAuthorship: '署名', tabVenues: '期刊/会议', tabCoauthors: '合作者',
+      tabOverview: '概览', tabVenues: '期刊/会议', tabCoauthors: '合作者',
       papers: '论文数', citations: '总引用', hIndex: 'h 指数', gIndex: 'g 指数', i10: 'i10 指数',
       eIndex: 'e 指数', mIndex: 'm 指数', meanCites: '篇均引用', medianCites: '引用中位数',
       maxCites: '最高单篇引用', uncited: '零引用论文', topShare: '最高单篇占比', hCoreShare: 'h 核心引用占比',
@@ -44,7 +44,7 @@ SA.i18n = (() => {
       distinctCoauthors: '合作者人数', repeatCoauthors: '多次合作者', collaborativeShare: '合作论文占比',
       topCoauthors: '主要合作者 Top {n}', coauthor: '合作者', jointPapers: '篇数', jointCites: '引用',
       coauthorNote: '合作者按"名首字母 + 姓"合并，同名者可能被合并；被截断的作者列表中的合作者未计入。',
-      tabRankings: '排名',
+      tabRankings: '排名名单', byTier: '{s} 各等级', medianAuthorsSub: '中位数 {v}',
       firstShort: '一作', corrShort: '通讯', rowMarks: '在左侧文章列表中标注',
       posCorresponding: '通讯作者', corrNote: '作者名后带 * 的视为通讯作者（如 Z Xiao*）。',
       metricMean: '平均 {l}', metricMax: '最高 {v}', flagTile: '{f}期刊论文',
@@ -72,7 +72,7 @@ SA.i18n = (() => {
       analyzing: 'Analyzing…',
       partial: 'Google Scholar stopped the loading ({err}). Statistics below use only the {n} papers fetched. Solve the CAPTCHA on the page, then click "Reload".',
       failed: 'Failed to load: {err}',
-      tabOverview: 'Overview', tabAuthorship: 'Authorship', tabVenues: 'Venues', tabCoauthors: 'Co-authors',
+      tabOverview: 'Overview', tabVenues: 'Venues', tabCoauthors: 'Co-authors',
       papers: 'Papers', citations: 'Citations', hIndex: 'h-index', gIndex: 'g-index', i10: 'i10-index',
       eIndex: 'e-index', mIndex: 'm-quotient', meanCites: 'Mean cites', medianCites: 'Median cites',
       maxCites: 'Most cited paper', uncited: 'Uncited papers', topShare: 'Top paper share', hCoreShare: 'h-core share',
@@ -104,7 +104,7 @@ SA.i18n = (() => {
       distinctCoauthors: 'Co-authors', repeatCoauthors: 'Repeat co-authors', collaborativeShare: 'Co-authored share',
       topCoauthors: 'Top {n} co-authors', coauthor: 'Co-author', jointPapers: 'Papers', jointCites: 'Cites',
       coauthorNote: 'Co-authors are merged by first initial + surname, so namesakes may merge; names hidden by truncated bylines are not counted.',
-      tabRankings: 'Ranks',
+      tabRankings: 'Rankings', byTier: '{s} by tier', medianAuthorsSub: 'median {v}',
       firstShort: '1st author', corrShort: 'Corresponding', rowMarks: 'Mark in the article list',
       posCorresponding: 'Corresponding author', corrNote: 'A name ending in * (e.g. Z Xiao*) marks the corresponding author.',
       metricMean: 'Mean {l}', metricMax: 'max {v}', flagTile: '{f} journal papers',
@@ -127,6 +127,12 @@ SA.i18n = (() => {
 
   let lang = /^zh/i.test(navigator.language) ? 'zh' : 'en';
 
+  // Ranking-list strings from data/rankings.json may be plain or { zh, en }.
+  function L(v) {
+    if (v == null || typeof v !== 'object') return v ?? '';
+    return v[lang] ?? v.en ?? v.zh ?? Object.values(v)[0] ?? '';
+  }
+
   function t(key, vars = {}) {
     const s = (STRINGS[lang] && STRINGS[lang][key]) || STRINGS.en[key] || key;
     return s.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
@@ -134,6 +140,7 @@ SA.i18n = (() => {
 
   return {
     t,
+    L,
     get lang() { return lang; },
     set lang(v) { if (STRINGS[v]) lang = v; },
   };

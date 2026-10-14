@@ -43,12 +43,15 @@ SA.stats = (() => {
   }
 
   // Picks the author keys that represent the profile owner across the paper list.
-  // Returns a Set: the main key plus name-order variants (e.g. "h geoffrey").
+  // Returns { primary, alternates }: the owner's usual byline form, plus other name orders
+  // (e.g. "h geoffrey") that are only trusted on papers where the primary form is absent,
+  // because for many names the reversed form is a different person ("Y Liu" vs "L Yang").
   function detectSelfKeys(papers, profileName, override) {
-    if (override && authorKey(override)) return new Set([authorKey(override)]);
+    if (override && authorKey(override)) return { primary: authorKey(override), alternates: new Set() };
     const freq = new Map();
-    papers.forEach((p) => new Set(p.authors.keys).forEach((k) => freq.set(k, (freq.get(k) || 0) + 1)));
-    if (!freq.size) return new Set();
+    // Names without Latin letters have an empty key; they must not merge into one "author".
+    papers.forEach((p) => new Set(p.authors.keys.filter(Boolean)).forEach((k) => freq.set(k, (freq.get(k) || 0) + 1)));
+    if (!freq.size) return { primary: '', alternates: new Set() };
     const candidates = candidateSelfKeys(profileName);
     let best = '', bestN = 0, top = '', topN = 0;
     for (const [k, n] of freq) {
@@ -56,7 +59,9 @@ SA.stats = (() => {
       if (candidates.has(k) && n > bestN) { best = k; bestN = n; }
     }
     // The owner appears on most papers; if the name match is weak, trust frequency.
-    return best && bestN >= 0.3 * topN ? new Set([best, ...candidates]) : new Set([top]);
+    if (!best || bestN < 0.3 * topN) return { primary: top, alternates: new Set() };
+    candidates.delete(best);
+    return { primary: best, alternates: candidates };
   }
 
   // Strips volume/issue/pages from Scholar's venue string.
@@ -185,7 +190,8 @@ SA.stats = (() => {
     papers.forEach((p) => {
       const { keys, truncated } = p.authors;
       const n = keys.length;
-      const idx = keys.findIndex((k) => selfKeys.has(k));
+      let idx = selfKeys.primary ? keys.indexOf(selfKeys.primary) : -1;
+      if (idx < 0) idx = keys.findIndex((k) => k && selfKeys.alternates.has(k));
       let pos;
       if (idx < 0) pos = truncated ? 'hidden' : 'unmatched';
       else if (idx === 0) pos = 'first'; // includes sole-authored papers
@@ -245,10 +251,11 @@ SA.stats = (() => {
 
   function coauthors(papers, selfKeys, topN = 20) {
     const byKey = new Map();
+    const isSelf = (p, k, i) => i === p.selfIndex || k === selfKeys.primary;
     papers.forEach((p) => {
       const seen = new Set();
       p.authors.keys.forEach((k, i) => {
-        if (!k || selfKeys.has(k) || seen.has(k)) return;
+        if (!k || isSelf(p, k, i) || seen.has(k)) return;
         seen.add(k);
         const c = byKey.get(k) || { names: new Map(), count: 0, citations: 0, years: [] };
         const name = p.authors.names[i].replace(/\*+\s*$/, ''); // drop corresponding-author marks
@@ -266,7 +273,7 @@ SA.stats = (() => {
       firstYear: c.years.length ? Math.min(...c.years) : null,
       lastYear: c.years.length ? Math.max(...c.years) : null,
     })).sort((a, b) => b.count - a.count || b.citations - a.citations);
-    const withCoauthors = papers.filter((p) => p.authors.keys.some((k) => k && !selfKeys.has(k))).length;
+    const withCoauthors = papers.filter((p) => p.authors.keys.some((k, i) => k && !isSelf(p, k, i))).length;
     return {
       distinct: list.length,
       repeat: list.filter((c) => c.count >= 2).length,
@@ -298,8 +305,8 @@ SA.stats = (() => {
     });
     const metricValues = matched.map((m) => m.metric).filter((v) => v != null);
     // Every configured flag is reported, so a zero count ("no warning journals") is visible too.
-    const flags = (config.flags || []).map((f) => ({
-      label: f.label, warn: !!f.warn, count: matched.filter((m) => m.flags.includes(f.label)).length,
+    const flags = (config.flags || []).map((f, i) => ({
+      label: f.label, warn: !!f.warn, count: matched.filter((m) => m.flags.includes(i)).length,
     }));
     const order = matcher.tiers.map((t) => t.value);
     matched.sort((a, b) => order.indexOf(a.tier) - order.indexOf(b.tier) || b.citations - a.citations);
@@ -327,7 +334,7 @@ SA.stats = (() => {
     const selfKeys = detectSelfKeys(papers, data.profile && data.profile.name, opts.selfOverride);
     const authorshipResult = authorship(papers, selfKeys); // sets p.position, used by rankingStats
     return {
-      selfKey: [...selfKeys][0] || '',
+      selfKey: selfKeys.primary,
       basic: basicMetrics(papers, histogram, now),
       perYear: perYear(papers, histogram),
       buckets: citationBuckets(papers),

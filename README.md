@@ -4,15 +4,15 @@ Adds a statistics section to the **Cited by** box on Google Scholar profile page
 below Scholar's own citation table and chart. It starts expanded on every page load and can be collapsed from its header.
 It loads every publication on the profile automatically (100 per request, ~1 s apart) and computes:
 
-- **Overview**: papers, citations, h / g / i10 / e-index, m-quotient, academic age, mean/median citations,
-  uncited papers, h-core share, last-5-year output and citations, year-over-year citation growth.
-  Charts: citations received per year, papers per year, papers by citation count.
-- **Authorship**: first / last / middle and corresponding author counts with their citations and h-index
-  (sole-authored papers count as first author; a name ending in `*`, e.g. `Z Xiao*`, marks the corresponding author),
-  mean/median team size, byline position distribution. The owner's byline name is auto-detected and can be overridden.
+- **Overview (概览)**: papers and citations, then authorship — first / last / corresponding author counts with
+  their citations and h-index (sole-authored papers count as first author; a name ending in `*`, e.g. `Z Xiao*`,
+  marks the corresponding author) and mean/median team size — then one tile per ranking list, h / g / i10 / e-index,
+  m-quotient, academic age, mean/median citations, uncited papers, h-core share, last-5-year output and citations,
+  year-over-year citation growth. Charts: citations per year, papers per year, papers by citation count, byline
+  position. The owner's byline name is auto-detected and can be corrected at the bottom of the tab.
 - **Venues**: publication types (journal, conference, preprint, patent, …) and top venues with citations.
 - **Co-authors**: distinct and repeat co-authors, co-authored share, top co-authors.
-- **Rankings**: for each list in `data/rankings.json`, papers per tier with their citations and first-author
+- **Rankings (排名名单)**: for each list in `data/rankings.json`, papers per tier with their citations and first-author
   counts, journal/conference split, list-specific extras (mean impact factor, Top / 预警 journals), and a list of
   matched papers filterable by tier or flag. Every list also gets a summary tile in Overview.
 
@@ -57,6 +57,8 @@ Ranking lists live in `data/` and are declared in `data/rankings.json`. To add o
    }
    ```
 
+   - `name`, `shortName`, tier `label`s and flag `label`s may be a plain string or `{ "zh": "1区", "en": "Zone 1" }`;
+     the UI shows the current language.
    - `columns` maps your CSV's header names. Only `name` is required; `abbr`, `tier`, `type` and `field` are optional.
    - `columns.tier` may also be a list of columns; the best tier across them is used (JCR quartiles per category).
    - `tierPattern` (optional) is a regex whose first group is the tier, e.g. `"^\\s*(\\d)"` (as written in JSON) turns `4 [625/778]` into `4`.

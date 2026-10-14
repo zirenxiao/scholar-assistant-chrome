@@ -2,8 +2,14 @@
   "lists": [
     {
       "id": "ccf2026",
-      "name": "CCF 推荐目录 2026",
-      "shortName": "CCF",
+      "name": {
+        "zh": "CCF 推荐目录 2026",
+        "en": "CCF Recommended List 2026"
+      },
+      "shortName": {
+        "zh": "CCF",
+        "en": "CCF"
+      },
       "file": "CCF2026-UTF8.csv",
       "columns": {
         "abbr": "刊物名称",
@@ -50,20 +56,41 @@
     },
     {
       "id": "gjqkyjmd2025",
-      "name": "国际期刊预警名单 2025",
-      "shortName": "预警",
+      "name": {
+        "zh": "国际期刊预警名单 2025",
+        "en": "International Journal Early Warning List 2025"
+      },
+      "shortName": {
+        "zh": "预警",
+        "en": "Warning"
+      },
       "kind": "warning",
       "file": "GJQKYJMD2025.csv",
       "defaultType": "journal",
       "columns": {
         "name": "Journal",
         "tier": "预警原因（2025）"
-      }
+      },
+      "tiers": [
+        {
+          "value": "论文工厂",
+          "label": {
+            "zh": "论文工厂",
+            "en": "Paper mill"
+          }
+        }
+      ]
     },
     {
       "id": "cas2025",
-      "name": "中科院分区表 2025",
-      "shortName": "中科院",
+      "name": {
+        "zh": "中科院分区表 2025",
+        "en": "CAS Journal Ranking 2025"
+      },
+      "shortName": {
+        "zh": "中科院",
+        "en": "CAS"
+      },
       "file": "FQBJCR2025-UTF8.csv",
       "defaultType": "journal",
       "columns": {
@@ -75,31 +102,49 @@
       "tiers": [
         {
           "value": "1",
-          "label": "1区"
+          "label": {
+            "zh": "1区",
+            "en": "Zone 1"
+          }
         },
         {
           "value": "2",
-          "label": "2区"
+          "label": {
+            "zh": "2区",
+            "en": "Zone 2"
+          }
         },
         {
           "value": "3",
-          "label": "3区"
+          "label": {
+            "zh": "3区",
+            "en": "Zone 3"
+          }
         },
         {
           "value": "4",
-          "label": "4区"
+          "label": {
+            "zh": "4区",
+            "en": "Zone 4"
+          }
         }
       ],
       "flags": [
         {
           "column": "Top",
           "equals": "是",
-          "label": "Top"
+          "label": {
+            "zh": "Top",
+            "en": "Top"
+          }
         },
         {
           "column": "标注",
           "contains": "预警",
-          "label": "预警",
+          "label": {
+            "zh": "预警",
+            "en": "Warning"
+          },
           "warn": true
         }
       ],
@@ -109,8 +154,14 @@
     },
     {
       "id": "jcr2025",
-      "name": "JCR 2025",
-      "shortName": "JCR",
+      "name": {
+        "zh": "JCR 2025",
+        "en": "JCR 2025"
+      },
+      "shortName": {
+        "zh": "JCR",
+        "en": "JCR"
+      },
       "file": "JCR2025-UTF8.csv",
       "defaultType": "journal",
       "columns": {
@@ -153,8 +204,14 @@
     },
     {
       "id": "xr2026",
-      "name": "新锐期刊分区 2026",
-      "shortName": "新锐",
+      "name": {
+        "zh": "新锐期刊分区 2026",
+        "en": "XR Journal Ranking 2026"
+      },
+      "shortName": {
+        "zh": "新锐",
+        "en": "XR"
+      },
       "file": "XR2026-UTF8.csv",
       "defaultType": "journal",
       "columns": {
@@ -166,31 +223,49 @@
       "tiers": [
         {
           "value": "1",
-          "label": "1区"
+          "label": {
+            "zh": "1区",
+            "en": "Zone 1"
+          }
         },
         {
           "value": "2",
-          "label": "2区"
+          "label": {
+            "zh": "2区",
+            "en": "Zone 2"
+          }
         },
         {
           "value": "3",
-          "label": "3区"
+          "label": {
+            "zh": "3区",
+            "en": "Zone 3"
+          }
         },
         {
           "value": "4",
-          "label": "4区"
+          "label": {
+            "zh": "4区",
+            "en": "Zone 4"
+          }
         }
       ],
       "flags": [
         {
           "column": "Top",
           "equals": "Top",
-          "label": "Top"
+          "label": {
+            "zh": "Top",
+            "en": "Top"
+          }
         },
         {
           "column": "预警标记",
           "notEmpty": true,
-          "label": "预警",
+          "label": {
+            "zh": "预警",
+            "en": "Warning"
+          },
           "warn": true
         }
       ],

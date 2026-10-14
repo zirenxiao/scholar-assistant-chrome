@@ -53,12 +53,14 @@ SA.rowMarks = (() => {
   }
 
   function rankBadges({ rk, p }) {
-    const warnFlags = new Set(rk.flags.filter((f) => f.warn).map((f) => f.label));
-    const plainFlags = p.flags.filter((f) => !warnFlags.has(f));
-    const metric = rk.metric && p.metric != null ? ` · ${rk.metric.label} ${p.metric.toFixed(rk.metric.decimals)}` : '';
-    const title = `${rk.name}: ${p.tierLabel}${plainFlags.length ? ` (${plainFlags.join(', ')})` : ''} — ${p.venue}`;
-    const out = [badge(`${rk.shortName}-${p.tierLabel}${plainFlags.map((f) => ` ${f}`).join('')}${metric}`, tierClass(rk, p.tier), title)];
-    p.flags.filter((f) => warnFlags.has(f)).forEach((f) => out.push(badge(`${rk.shortName}-${f}`, 'sa-rb-warn', `${rk.name}: ${f}`)));
+    const L = SA.i18n.L;
+    const name = L(rk.name), short = L(rk.shortName), tier = L(p.tierLabel);
+    const plainFlags = p.flags.filter((i) => !rk.flags[i].warn).map((i) => L(rk.flags[i].label));
+    const warnFlags = p.flags.filter((i) => rk.flags[i].warn).map((i) => L(rk.flags[i].label));
+    const metric = rk.metric && p.metric != null ? ` · ${L(rk.metric.label)} ${p.metric.toFixed(rk.metric.decimals)}` : '';
+    const title = `${name}: ${tier}${plainFlags.length ? ` (${plainFlags.join(', ')})` : ''} — ${p.venue}`;
+    const out = [badge(`${short}-${tier}${plainFlags.map((f) => ` ${f}`).join('')}${metric}`, tierClass(rk, p.tier), title)];
+    warnFlags.forEach((f) => out.push(badge(`${short}-${f}`, 'sa-rb-warn', `${name}: ${f}`)));
     return out;
   }
 

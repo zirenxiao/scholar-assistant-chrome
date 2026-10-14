@@ -101,6 +101,7 @@ SA.rankings = (() => {
    * config.tiers: optional [{ value, label }] in rank order; defaults to the distinct values in file order.
    * config.metric: optional { column, label, decimals } numeric value per venue (e.g. impact factor).
    * config.flags: optional [{ column, equals | contains | notEmpty, label, warn }] markers (e.g. Top journal).
+   * Display strings (name, shortName, tier and flag labels) may be plain or { zh, en }.
    * Returns { meta, entries, aliases } where aliases are [aliasKey, entry] pairs.
    */
   function readList(config, table) {
@@ -138,12 +139,13 @@ SA.rankings = (() => {
     };
     const metricI = config.metric ? ix(config.metric.column) : -1;
     const flagDefs = (config.flags || []).map((f) => ({ ...f, i: ix(f.column) }));
-    const flagged = (r) => flagDefs.filter((f) => {
+    // Flags are stored as indexes into the list's flag definitions, so labels can be localized.
+    const flagged = (r) => flagDefs.map((f, i) => {
       const v = cell(r, f.i);
-      if (f.equals !== undefined) return v === f.equals;
-      if (f.contains !== undefined) return v.includes(f.contains);
-      return f.notEmpty ? v !== '' && v !== '-' && v !== '—' : false;
-    }).map((f) => f.label);
+      if (f.equals !== undefined) return v === f.equals ? i : -1;
+      if (f.contains !== undefined) return v.includes(f.contains) ? i : -1;
+      return f.notEmpty && v !== '' && v !== '-' && v !== '—' ? i : -1;
+    }).filter((i) => i >= 0);
 
     const entries = [];
     for (const r of table.rows) {

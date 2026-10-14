@@ -14,7 +14,8 @@ const lists = config.lists.map((cfg) => {
   const table = R.parseCSV(fs.readFileSync(path.join(dataDir, cfg.file), 'utf8'));
   const list = R.readList(cfg, table);
   const perTier = {};
-  list.entries.forEach((e) => { const l = list.meta.tiers[e.tier].label; perTier[l] = (perTier[l] || 0) + 1; });
+  const text = (v) => (v && typeof v === 'object' ? v.zh ?? v.en : v); // labels may be { zh, en }
+  list.entries.forEach((e) => { const l = text(list.meta.tiers[e.tier].label); perTier[l] = (perTier[l] || 0) + 1; });
   console.log(`${cfg.id.padEnd(14)} ${String(table.rows.length).padStart(6)} rows -> ${String(list.entries.length).padStart(6)} entries  ${JSON.stringify(perTier)}`);
   return list;
 });
