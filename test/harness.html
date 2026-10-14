@@ -145,13 +145,15 @@
 </script>
 <script src="../src/content.js"></script>
 <script>
-  // ?tab=<index>: open that panel tab once the analysis has rendered.
-  if (params.get('tab')) {
+  // ?tab=<index>: open that panel tab; ?scroll=<px>: shift the page up by that much; both once the analysis has rendered.
+  // (Shifting instead of scrolling, because headless --screenshot does not repaint a scrolled page.)
+  if (params.get('tab') || params.get('scroll')) {
     const timer = setInterval(() => {
       const tabs = document.querySelector('#scholar-assistant-root')?.shadowRoot.querySelectorAll('.sa-tab');
       if (!tabs || !tabs.length) return;
       clearInterval(timer);
-      tabs[Number(params.get('tab'))]?.click();
+      if (params.get('tab')) tabs[Number(params.get('tab'))]?.click();
+      if (params.get('scroll')) document.body.style.marginTop = `-${Number(params.get('scroll'))}px`;
     }, 100);
   }
 </script>
