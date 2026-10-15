@@ -45,7 +45,13 @@ SA.i18n = (() => {
       topCoauthors: '主要合作者 Top {n}', coauthor: '合作者', jointPapers: '篇数', jointCites: '引用',
       coauthorNote: '合作者按"名首字母 + 姓"合并，同名者可能被合并；被截断的作者列表中的合作者未计入。',
       tabRankings: '排名名单', byTier: '{s} 各等级', medianAuthorsSub: '中位数 {v}',
-      firstShort: '一作', corrShort: '通讯', rowMarks: '在左侧文章列表中标注',
+      firstShort: '一作', corrShort: '通讯',
+      settingsHint: '要启用或关闭排名名单、设置标注，请点击浏览器工具栏中的 Scholar Assistant 图标。',
+      popupLang: '界面语言', langAuto: '跟随浏览器',
+      popupLists: '排名名单', popupListsHint: '取消勾选的名单不会出现在统计、文章列表和搜索结果中。',
+      popupMarks: '标注', popupFirst: '在文章列表中标注一作论文', popupCorresponding: '在文章列表中标注通讯作者论文',
+      popupSearch: '在 Scholar 搜索结果中显示期刊/会议排名',
+      popupSaved: '已保存', popupSource: 'GitHub 主页 / 反馈',
       posCorresponding: '通讯作者', corrNote: '作者名后带 * 的视为通讯作者（如 Z Xiao*）。',
       metricMean: '平均 {l}', metricMax: '最高 {v}', flagTile: '{f}期刊论文',
       warnTile: '{s}期刊论文', warnNone: '无', warnShare: '占全部论文 {p}',
@@ -105,7 +111,13 @@ SA.i18n = (() => {
       topCoauthors: 'Top {n} co-authors', coauthor: 'Co-author', jointPapers: 'Papers', jointCites: 'Cites',
       coauthorNote: 'Co-authors are merged by first initial + surname, so namesakes may merge; names hidden by truncated bylines are not counted.',
       tabRankings: 'Rankings', byTier: '{s} by tier', medianAuthorsSub: 'median {v}',
-      firstShort: '1st author', corrShort: 'Corresponding', rowMarks: 'Mark in the article list',
+      firstShort: '1st author', corrShort: 'Corresponding',
+      settingsHint: 'To enable or disable ranking lists and choose what to mark, click the Scholar Assistant icon in the browser toolbar.',
+      popupLang: 'Language', langAuto: 'Same as browser',
+      popupLists: 'Ranking lists', popupListsHint: 'Unchecked lists are left out of the statistics, the article list and search results.',
+      popupMarks: 'Marks', popupFirst: 'Mark first-author papers in the article list', popupCorresponding: 'Mark corresponding-author papers in the article list',
+      popupSearch: 'Show venue rankings in Scholar search results',
+      popupSaved: 'Saved', popupSource: 'GitHub / feedback',
       posCorresponding: 'Corresponding author', corrNote: 'A name ending in * (e.g. Z Xiao*) marks the corresponding author.',
       metricMean: 'Mean {l}', metricMax: 'max {v}', flagTile: '{f} journal papers',
       warnTile: '{s} journal papers', warnNone: 'none', warnShare: '{p} of all papers',
@@ -125,7 +137,8 @@ SA.i18n = (() => {
     },
   };
 
-  let lang = /^zh/i.test(navigator.language) ? 'zh' : 'en';
+  const browserLang = /^zh/i.test(navigator.language) ? 'zh' : 'en';
+  let lang = browserLang;
 
   // Ranking-list strings from data/rankings.json may be plain or { zh, en }.
   function L(v) {
@@ -141,6 +154,7 @@ SA.i18n = (() => {
   return {
     t,
     L,
+    browserLang,
     get lang() { return lang; },
     set lang(v) { if (STRINGS[v]) lang = v; },
   };

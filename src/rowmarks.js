@@ -3,23 +3,6 @@
 var SA = globalThis.SA || (globalThis.SA = {});
 
 SA.rowMarks = (() => {
-  const STYLE_ID = 'sa-row-style';
-  // Lives in the page (not the panel's shadow root), so every class is prefixed.
-  const STYLE = `
-    #gsc_a_b tr.sa-row-first > td { background-color: #eef4fd; }
-    #gsc_a_b .sa-self { font-weight: bold; color: #222; }
-    #gsc_a_b .sa-row-badges { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
-    #gsc_a_b .sa-rb {
-      display: inline-block; padding: 0 5px; border: 1px solid; border-radius: 3px;
-      font-size: 11px; line-height: 16px; white-space: nowrap; cursor: default;
-    }
-    #gsc_a_b .sa-rb-first { background: #1a73e8; border-color: #1a73e8; color: #fff; }
-    #gsc_a_b .sa-rb-t1 { background: #e8f0fe; border-color: #aecbfa; color: #174ea6; font-weight: bold; }
-    #gsc_a_b .sa-rb-t2 { background: #fff; border-color: #aecbfa; color: #1967d2; }
-    #gsc_a_b .sa-rb-t3 { background: #fff; border-color: #dadce0; color: #5f6368; }
-    #gsc_a_b .sa-rb-warn { background: #fce8e6; border-color: #f5b4ae; color: #c5221f; }
-  `;
-
   let info = new Map();   // citation_for_view id -> { position, selfIndex, ranks: [{ rk, p }] }
   let settings = { first: true, corresponding: true, lists: {} };
   let labels = { first: '1st', corresponding: 'Corr.' };
@@ -29,40 +12,7 @@ SA.rowMarks = (() => {
     try { return new URL(href, location.origin).searchParams.get('citation_for_view'); } catch { return null; }
   };
 
-  function ensureStyle() {
-    if (document.getElementById(STYLE_ID)) return;
-    const st = document.createElement('style');
-    st.id = STYLE_ID;
-    st.textContent = STYLE;
-    document.head.appendChild(st);
-  }
-
-  function badge(text, cls, title) {
-    const b = document.createElement('span');
-    b.className = `sa-rb ${cls}`;
-    b.textContent = text;
-    if (title) b.title = title;
-    return b;
-  }
-
-  // Strongest styling for the list's top tier, lighter for the second, neutral below.
-  function tierClass(rk, tierValue) {
-    if (rk.kind === 'warning') return 'sa-rb-warn';
-    const i = rk.tiers.findIndex((x) => x.value === tierValue);
-    return i === 0 ? 'sa-rb-t1' : i === 1 ? 'sa-rb-t2' : 'sa-rb-t3';
-  }
-
-  function rankBadges({ rk, p }) {
-    const L = SA.i18n.L;
-    const name = L(rk.name), short = L(rk.shortName), tier = L(p.tierLabel);
-    const plainFlags = p.flags.filter((i) => !rk.flags[i].warn).map((i) => L(rk.flags[i].label));
-    const warnFlags = p.flags.filter((i) => rk.flags[i].warn).map((i) => L(rk.flags[i].label));
-    const metric = rk.metric && p.metric != null ? ` · ${L(rk.metric.label)} ${p.metric.toFixed(rk.metric.decimals)}` : '';
-    const title = `${name}: ${tier}${plainFlags.length ? ` (${plainFlags.join(', ')})` : ''} — ${p.venue}`;
-    const out = [badge(`${short}-${tier}${plainFlags.map((f) => ` ${f}`).join('')}${metric}`, tierClass(rk, p.tier), title)];
-    warnFlags.forEach((f) => out.push(badge(`${short}-${f}`, 'sa-rb-warn', `${name}: ${f}`)));
-    return out;
-  }
+  const { badge, rankBadges } = SA.badges; // shared with the search-results marks
 
   // Bold the owner's name in the byline; the original text is kept to undo it on re-render.
   function markSelf(authorsEl, selfIndex) {
@@ -144,7 +94,7 @@ SA.rowMarks = (() => {
         if (inf) inf.ranks.push({ rk, p });
       }));
     }
-    ensureStyle();
+    SA.badges.ensureStyle();
     watch();
     annotateAll();
   }

@@ -51,25 +51,26 @@
     </div>
   </div>
 </div>
+<script src="chrome-stub.js"></script>
 <script>
-  // Optional URL parameters (used for README screenshots): ?lang=zh|en&tab=<index>&list=<ranking list id>
+  // Optional URL parameters (used for screenshots): ?lang=zh|en&tab=<index>&list=<ranking list id>&scroll=<px>
   const params = new URLSearchParams(location.search);
-  // Stub chrome.* APIs used by content.js; saved settings come from the URL parameters.
-  window.chrome = {
-    runtime: { getURL: (p) => '../' + p },
-    storage: { local: {
-      _d: { ...(params.get('lang') && { lang: params.get('lang') }), ...(params.get('list') && { rankingId: params.get('list') }) },
-      get(k, cb) { cb({ ...this._d }); },
-      set(o) { Object.assign(this._d, o); },
-    } },
-  };
+  // Settings start fresh on every load, seeded from the URL, so screenshots are reproducible.
+  // Changes made later in test/popup.html (another tab) still reach this page live.
+  localStorage.removeItem('sa-test-storage');
+  chrome.storage.local.set({
+    ...(params.get('lang') && { lang: params.get('lang') }),
+    ...(params.get('list') && { rankingId: params.get('list') }),
+  });
   history.replaceState(null, '', location.pathname + '?user=TEST');
 </script>
 <script src="../src/i18n.js"></script>
+<script src="../src/settings.js"></script>
 <script src="../src/scraper.js"></script>
 <script src="../src/rankings.js"></script>
 <script src="../src/stats.js"></script>
 <script src="../src/charts.js"></script>
+<script src="../src/badges.js"></script>
 <script src="../src/rowmarks.js"></script>
 <script>
   // Deterministic fictional data; the network fetch is replaced below.

@@ -2,7 +2,7 @@
 
 **Scholar Assistant：谷歌学术学者统计**（Chrome 扩展程序）
 
-生效日期 / Effective date: 2026-10-14
+生效日期 / Effective date: 2026-10-15
 
 [中文](#中文) · [English](#english)
 
@@ -16,8 +16,9 @@ Scholar Assistant 在 Google Scholar 学者主页上显示该学者的统计信�
 
 ### 扩展读取的内容
 
-- 仅在 Google Scholar 学者主页（`https://scholar.google.<国家/地区域名>/citations…`）上运行，不访问其他任何网站。
-- 读取页面上公开显示的论文列表（标题、作者、发表源、引用数、年份）和引用统计。
+- 仅在 Google Scholar 的学者主页（`https://scholar.google.<国家/地区域名>/citations…`）和搜索结果页（`…/scholar…`）上运行，不访问其他任何网站。
+- 在学者主页上，读取页面上公开显示的论文列表（标题、作者、发表源、引用数、年份）和引用统计。
+- 在搜索结果页上，只读取每条结果中显示的发表源名称，用于标注期刊/会议排名；不读取、不保存您的搜索词。
 - 为了统计该学者的全部论文，扩展会向**当前正在浏览的同一个 Google Scholar 网站**请求该主页的后续分页，相当于点击页面上的“Show more”按钮（约每秒一次）。这些请求由您的浏览器直接发往 Google Scholar，与您自己浏览该网站相同。
 - 读取扩展安装包内自带的排名名单索引文件。
 
@@ -29,7 +30,7 @@ Scholar Assistant 在 Google Scholar 学者主页上显示该学者的统计信�
 
 - 界面语言（中文/英文）；
 - 选择的排名名单；
-- 在文章列表中显示哪些标注；
+- 启用了哪些排名名单、在文章列表和搜索结果中显示哪些标注；
 - 您为某个学者主页手动修正的署名（按该主页公开的 Scholar 用户 ID 保存）。
 
 这些设置只保存在您的设备上，不会同步或上传；卸载扩展时会一并删除。您也可以随时在扩展中修改它们。
@@ -60,8 +61,9 @@ Scholar Assistant shows statistics and venue rankings for the researcher on a Go
 
 ### What the extension reads
 
-- It runs only on Google Scholar profile pages (`https://scholar.google.<country domain>/citations…`) and accesses no other website.
-- It reads the publication list (titles, authors, venues, citation counts, years) and citation statistics publicly shown on the page.
+- It runs only on Google Scholar profile pages (`https://scholar.google.<country domain>/citations…`) and search result pages (`…/scholar…`), and accesses no other website.
+- On profile pages, it reads the publication list (titles, authors, venues, citation counts, years) and citation statistics publicly shown on the page.
+- On search result pages, it reads only the venue name shown in each result, to mark its ranking; it does not read or store your search terms.
 - To cover all of the researcher's publications, it requests the remaining pages of that profile from **the same Google Scholar site you are viewing**, as Scholar's own "Show more" button does (about one request per second). These requests go directly from your browser to Google Scholar, exactly as if you browsed the site yourself.
 - It reads the ranking-list index files packaged inside the extension.
 
@@ -73,7 +75,7 @@ The extension uses `chrome.storage.local` to keep these settings in your browser
 
 - interface language (Chinese / English);
 - the selected ranking list;
-- which marks to show in the article list;
+- which ranking lists are enabled and which marks to show in the article list and search results;
 - an author name you corrected for a given Scholar profile (keyed by that profile's public Scholar user ID).
 
 These settings stay on your device, are not synced or uploaded, and are removed when you uninstall the extension. You can change them at any time in the extension.

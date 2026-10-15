@@ -313,6 +313,9 @@ SA.rankings = (() => {
       if (paren) text = text.replace(paren[0], ' ');
       const vt = new Set(tokens(text));
       if (!vt.size && !fullKey(text)) return null;
+      // "Proceedings of the IEEE …" is a cut-off conference name, not the journal Proceedings of the IEEE:
+      // a truncated name with no significant words left cannot be identified.
+      if (!vt.size && truncated && !paren) return null;
       return {
         raw, type, truncated, vt,
         conf: CONF_SIGNAL.test(raw),

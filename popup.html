@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Scholar Assistant</title>
+  <link rel="stylesheet" href="src/popup.css">
+</head>
+<body>
+  <header class="head">
+    <img src="icons/icon48.png" alt="" width="28" height="28">
+    <div>
+      <div class="title">Scholar Assistant</div>
+      <div class="version" id="version"></div>
+    </div>
+  </header>
+
+  <section>
+    <h2 data-t="popupLang"></h2>
+    <select id="lang">
+      <option value="" data-t="langAuto"></option>
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+    </select>
+  </section>
+
+  <section>
+    <h2 data-t="popupLists"></h2>
+    <div id="lists" class="checks"></div>
+    <p class="hint" data-t="popupListsHint"></p>
+  </section>
+
+  <section>
+    <h2 data-t="popupMarks"></h2>
+    <div class="checks">
+      <label class="check"><input type="checkbox" id="first"><span data-t="popupFirst"></span></label>
+      <label class="check"><input type="checkbox" id="corresponding"><span data-t="popupCorresponding"></span></label>
+      <label class="check"><input type="checkbox" id="searchMarks"><span data-t="popupSearch"></span></label>
+    </div>
+  </section>
+
+  <footer>
+    <span id="status" class="status" aria-live="polite"></span>
+    <a href="https://github.com/zirenxiao/scholar-assistant-chrome" target="_blank" rel="noopener" data-t="popupSource"></a>
+  </footer>
+
+  <script src="src/i18n.js"></script>
+  <script src="src/settings.js"></script>
+  <script src="src/popup.js"></script>
+</body>
+</html>

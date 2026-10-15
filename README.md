@@ -8,7 +8,7 @@
 
 在 Google Scholar 学者主页（`/citations?user=...`）右侧 **Cited by** 框中、Scholar 自带的引用表和柱状图下方，
 加入一个“学者统计”区域；同时在左侧文章列表中标注一作/通讯论文和期刊会议的排名等级。
-打开主页后会自动加载该学者的全部论文（每次 100 篇，间隔约 1 秒）。
+打开主页后会自动加载该学者的全部论文（每次 100 篇，间隔约 1 秒）。在 Scholar 搜索结果中，每篇论文下方也会显示其期刊/会议排名。
 
 ![概览与左侧文章列表标注](docs/screenshots/overview-zh.png)
 
@@ -38,8 +38,12 @@
 
 - **左侧文章列表标注**：一作和通讯论文整行浅蓝底色，显示“一作”/“通讯”标签，学者本人姓名加粗；
   每篇论文按命中的名单显示等级标签（如 `CCF-A`、`中科院-1区 Top`、`JCR-Q1 · IF 9.1`；最高等级加粗，预警为红色）。
-  点击“Show more”新加载的论文也会自动标注。各项标注可在“排名名单”页的“在左侧文章列表中标注”中单独关闭。
-- **中英文界面**：在统计区域标题栏切换，默认跟随浏览器语言。
+  点击“Show more”新加载的论文也会自动标注。
+- **搜索结果排名**：在 Google Scholar 搜索结果页（`/scholar?q=...`），每条结果的作者/发表源一行下方显示该期刊/会议在各名单中的等级。
+  Scholar 截断得过短、无法确定的名称（如 “Proceedings of the …”）不显示，以免误标。
+- **设置弹窗**：点击浏览器工具栏中的插件图标，可启用/关闭各排名名单（关闭后不出现在统计、文章列表和搜索结果中）、
+  开关一作/通讯标注和搜索结果排名、选择界面语言。设置自动保存，并立即应用到已打开的 Scholar 页面。
+- **中英文界面**：在设置弹窗或统计区域标题栏切换，默认跟随浏览器语言。
 
 ## 安装
 
@@ -93,7 +97,7 @@ ShowJCR 采用 GPL-3.0 许可证；各排名数据的权利归各自发布方所
    node tools/build-index.js
    ```
 
-   有多个名单时，“排名名单”页顶部可以切换，选择会被记住。
+   有多个名单时，“排名名单”页顶部可以切换，选择会被记住；在设置弹窗中可以启用或关闭各个名单。
 
 ### 索引
 
@@ -118,8 +122,10 @@ Newsletter 等附属出版物不计入；自称会议的发表源不会被算作
 
 ## 开发
 
-`test/harness.html` 在虚构的演示主页上运行插件，不需要联网。在仓库根目录启动静态服务器
-（如 `python -m http.server 8766`），然后打开 `/test/harness.html`。
-URL 参数 `lang=zh|en`、`tab=<序号>`、`list=<名单 id>` 可预设显示内容；README 中的截图用无头 Chrome/Edge 生成，例如
+`test/harness.html` 在虚构的演示主页上运行插件，不需要联网；`test/search.html` 是模拟的搜索结果页，
+`test/popup.html` 加载真实的设置弹窗。它们共用 `test/chrome-stub.js`（用 localStorage 模拟 `chrome.storage`），
+所以在一个标签页的弹窗里修改设置，会立即反映到另一个标签页中。在仓库根目录启动静态服务器
+（如 `python -m http.server 8766`），然后打开对应页面。
+`test/harness.html` 的 URL 参数 `lang=zh|en`、`tab=<序号>`、`list=<名单 id>`、`scroll=<像素>` 可预设显示内容；README 中的截图用无头 Chrome/Edge 生成，例如
 `msedge --headless=new --force-device-scale-factor=2 --window-size=1200,1080 --virtual-time-budget=10000 --screenshot=out.png "http://localhost:8766/test/harness.html?lang=zh&tab=3&list=cas2025"`。
 `src/stats.js` 和 `src/rankings.js` 不依赖 DOM，可在 Node 中 `require`。

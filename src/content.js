@@ -20,13 +20,13 @@
     rankingId: '',    // selected list
     rankTier: '',     // tier filter in the paper list ('' = all)
     rankShowAll: false,
-    rowMarks: { first: true, corresponding: true, lists: {} }, // what to mark in Scholar's article list; lists[id] === false hides one
+    settings: SA.settings.DEFAULTS, // from the toolbar popup: enabled lists, marks, language
   };
   const RANK_PREVIEW = 30;
   // Opened up front so its small meta/abbreviation files load while papers are fetched.
   const rankIndex = SA.rankings.openPackagedIndex();
 
-  // ---- persistence (language, selected ranking list, row marks, per-scholar name override) ----
+  // ---- persistence (selected ranking list, per-scholar name override; other settings live in SA.settings) ----
   const store = {
     get: (keys) => new Promise((r) => { try { chrome.storage.local.get(keys, r); } catch { r({}); } }),
     set: (obj) => { try { chrome.storage.local.set(obj); } catch { /* extension reloaded */ } },
@@ -247,27 +247,9 @@
     return i > 0 && SMALL_WORDS.has(w) ? w : w[0].toUpperCase() + w.slice(1);
   }));
 
-  // Checkboxes for what to highlight in Scholar's own article list.
-  function renderRowMarkSettings(r) {
-    const box = el('div', { class: 'sa-checks' });
-    const check = (label, checked, onChange) => {
-      const row = el('label', { class: 'sa-check' });
-      const input = el('input', { type: 'checkbox' });
-      input.checked = checked;
-      input.addEventListener('change', () => onChange(input.checked));
-      row.append(input, document.createTextNode(label));
-      box.appendChild(row);
-    };
-    check(t('firstShort'), state.rowMarks.first, (v) => setRowMark((m) => { m.first = v; }));
-    check(t('corrShort'), state.rowMarks.corresponding !== false, (v) => setRowMark((m) => { m.corresponding = v; }));
-    r.rankings.forEach((rk) => check(L(rk.name), state.rowMarks.lists[rk.id] !== false,
-      (v) => setRowMark((m) => { m.lists[rk.id] = v; })));
-    return section(t('rowMarks'), box);
-  }
-
   function renderRankings(r) {
     const rk = activeRanking(r);
-    if (!rk) return [note(t('rankNone'))];
+    if (!rk) return [note(t('rankNone')), note(t('settingsHint'))];
     const n = r.basic.papers || 1;
     const out = [];
 
@@ -342,8 +324,8 @@
       parts.push(more);
     }
     out.push(section(rankText(rk, 'rankPapers'), ...parts));
-    out.push(renderRowMarkSettings(r));
     out.push(note(t('rankNote')));
+    out.push(note(t('settingsHint')));
     return out;
   }
 
@@ -368,7 +350,8 @@
     const langBtn = el('button', { type: 'button', class: 'sa-btn', text: t('lang') });
     langBtn.addEventListener('click', () => {
       i18n.lang = i18n.lang === 'zh' ? 'en' : 'zh';
-      store.set({ lang: i18n.lang });
+      state.settings = { ...state.settings, lang: i18n.lang };
+      SA.settings.save(state.settings);
       render();
       if (state.result) markRows();
     });
@@ -406,19 +389,15 @@
 
   function analyze() {
     if (!state.data) return;
-    state.result = stats.analyze(state.data, { selfOverride: state.selfOverride, rankings: state.rankingLists });
+    // Lists switched off in the popup are left out of every statistic and mark.
+    const lists = state.rankingLists.filter((l) => SA.settings.listEnabled(state.settings, l.config.id));
+    state.result = stats.analyze(state.data, { selfOverride: state.selfOverride, rankings: lists });
     render();
     markRows();
   }
 
   function markRows() {
-    SA.rowMarks.update(state.result, { settings: state.rowMarks, firstLabel: t('firstShort'), correspondingLabel: t('corrShort') });
-  }
-
-  function setRowMark(update) {
-    update(state.rowMarks);
-    store.set({ rowMarks: state.rowMarks });
-    markRows();
+    SA.rowMarks.update(state.result, { settings: state.settings.marks, firstLabel: t('firstShort'), correspondingLabel: t('corrShort') });
   }
 
   async function load() {
@@ -440,9 +419,17 @@
     }
   }
 
-  store.get(['lang', 'rankingId', 'rowMarks', `self:${userId}`]).then((saved) => {
-    if (saved.lang) i18n.lang = saved.lang;
-    if (saved.rowMarks) state.rowMarks = { first: true, corresponding: true, lists: {}, ...saved.rowMarks };
+  // Settings changed in the popup apply to the open page right away.
+  SA.settings.onChange((s) => {
+    state.settings = s;
+    i18n.lang = s.lang || i18n.browserLang;
+    if (state.data) analyze();
+    else render();
+  });
+
+  Promise.all([SA.settings.load(), store.get(['rankingId', `self:${userId}`])]).then(([settings, saved]) => {
+    state.settings = settings;
+    if (settings.lang) i18n.lang = settings.lang;
     if (saved.rankingId) state.rankingId = saved.rankingId;
     state.selfOverride = saved[`self:${userId}`] || '';
     load();

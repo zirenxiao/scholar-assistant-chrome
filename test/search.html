@@ -1,0 +1,47 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Scholar Assistant search harness</title>
+<style>
+  /* Close to Scholar's search results page (.gs_r / .gs_ri / .gs_rt / .gs_a). */
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #222; margin: 0; background: #fff; }
+  .topbar { height: 48px; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 20px; font-size: 18px; color: #777; }
+  #gs_res_ccl_mid { max-width: 720px; margin: 16px 0 0 180px; }
+  .gs_r { margin-bottom: 22px; }
+  .gs_rt { margin: 0; font-size: 17px; font-weight: normal; line-height: 1.3; }
+  .gs_rt a { color: #1a0dab; text-decoration: none; }
+  .gs_a { color: #006621; margin: 2px 0; }
+  .gs_rs { color: #222; margin: 2px 0; line-height: 1.4; }
+  .gs_fl { color: #777; font-size: 13px; }
+</style></head>
+<body>
+<!-- Mock Google Scholar search results (fictional entries; venue strings follow Scholar's format). -->
+<div class="topbar">Scholar Assistant · demo search results</div>
+<div id="gs_res_ccl_mid"></div>
+<script src="chrome-stub.js"></script>
+<script>
+  const results = [
+    ['Robust segmentation for time-series forecasting', 'JQ Doe, A Smith, B Chen - Nature, 2021 - nature.com'],
+    ['Contrastive attention for medical image analysis', 'O Larsen, L Dubois, JQ Doe - IEEE Access, 2025 - ieeexplore.ieee.org'],
+    ['Self-supervised graph embeddings with limited labels', 'JQ Doe, N Okafor - Advances in neural information …, 2024 - proceedings.neurips.cc'],
+    ['Sparse graph embeddings under distribution shift', 'JQ Doe, N Okafor - Journal of Machine Learning Research, 2024 - jmlr.org'],
+    ['Hierarchical transformers for knowledge graphs', 'M Ivanova, P Moreau… - IEEE Transactions on Pattern Analysis and …, 2008 - ieeexplore.ieee.org'],
+    ['Efficient retrieval for visual recognition', 'K Tanaka, J Silva - Proceedings of the IEEE …, 2021 - openaccess.thecvf.com'],
+    ['Learning representations in federated settings', 'H Patel, G Kim - Wireless Personal Communications, 2020 - Springer'],
+    ['Robust diffusion models for visual recognition', 'I Novak, JQ Doe - Pattern Recognition, 2021 - Elsevier'],
+    ['Adaptive optimization under distribution shift', 'C Garcia - arXiv preprint arXiv:2101.00001, 2021 - arxiv.org'],
+    ['A textbook on scene understanding', 'JQ Doe - 2022 - books.google.com'],
+  ];
+  document.getElementById('gs_res_ccl_mid').innerHTML = results.map(([title, line]) => `
+    <div class="gs_r gs_or gs_scl"><div class="gs_ri">
+      <h3 class="gs_rt"><a href="#">${title}</a></h3>
+      <div class="gs_a">${line}</div>
+      <div class="gs_rs">Fictional abstract text for the demo result …</div>
+      <div class="gs_fl">Cited by 42 · Related articles · All 5 versions</div>
+    </div></div>`).join('');
+</script>
+<script src="../src/i18n.js"></script>
+<script src="../src/settings.js"></script>
+<script src="../src/rankings.js"></script>
+<script src="../src/stats.js"></script>
+<script src="../src/badges.js"></script>
+<script src="../src/search.js"></script>
+</body></html>

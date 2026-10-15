@@ -8,8 +8,9 @@ first-author and corresponding-author counts, co-author analysis, and **journal 
 
 It adds a statistics section to the **Cited by** box on Google Scholar profile pages (`/citations?user=...`),
 below Scholar's own citation table and chart, and marks first-author papers and venue rankings in the article list.
-It loads every publication on the profile automatically (100 per request, ~1 s apart). Useful for evaluating
-researchers, preparing a CV or tenure/job application, or checking where a scholar publishes.
+It loads every publication on the profile automatically (100 per request, ~1 s apart). On Scholar search results,
+each result also shows its venue's rankings. Useful for evaluating researchers, preparing a CV or tenure/job
+application, or checking where a scholar publishes.
 
 ![Overview tab and article list marks](docs/screenshots/overview-en.png)
 
@@ -42,9 +43,15 @@ researchers, preparing a CV or tenure/job application, or checking where a schol
 - **Article list marks**: rows of Scholar's own article list are marked too. First-author and corresponding-author
   papers get a tinted background, a "1st author" / "Corresponding" badge and the scholar's name in bold, and each
   paper gets a badge per matching ranking list (e.g. `CCF-A`, `CAS-Zone 1 Top`, `JCR-Q1 · IF 9.1`; top tiers are
-  emphasized, warnings are red). Rows added by "Show more" are marked as they appear. Each mark can be switched off
-  in the Rankings tab ("Mark in the article list").
-- **Chinese and English UI**: toggle in the section header; defaults to the browser language.
+  emphasized, warnings are red). Rows added by "Show more" are marked as they appear.
+- **Rankings in search results**: on Google Scholar search pages (`/scholar?q=...`), each result shows its venue's
+  tier in every list below its author/venue line. Venue names Scholar cut too short to identify (e.g.
+  "Proceedings of the …") get no badge rather than a wrong one.
+- **Settings popup**: click the extension icon in the browser toolbar to enable or disable each ranking list
+  (disabled lists are left out of the statistics, the article list and search results), switch first-author,
+  corresponding-author and search-result marks on or off, and choose the language. Settings are saved
+  automatically and apply immediately to open Scholar pages.
+- **Chinese and English UI**: switch in the popup or the section header; defaults to the browser language.
 
 ## Install
 
@@ -102,7 +109,8 @@ Ranking lists live in `data/` and are declared in `data/rankings.json`. To add o
    node tools/build-index.js
    ```
 
-   With more than one list, the Rankings tab shows a selector; the choice is remembered.
+   With more than one list, the Rankings tab shows a selector; the choice is remembered. Lists can be enabled or
+   disabled in the settings popup.
 
 ### The index
 
@@ -131,9 +139,11 @@ Matching logic lives in `src/rankings.js` and is shared by the build script (Nod
 
 ## Development
 
-`test/harness.html` renders the extension on a fictional demo profile with no network access.
-Serve the repo root (for example `python -m http.server 8766`) and open `/test/harness.html`.
-URL parameters `lang=zh|en`, `tab=<index>` and `list=<ranking list id>` preset the view; the README screenshots
+`test/harness.html` renders the extension on a fictional demo profile with no network access; `test/search.html`
+is a mock search results page and `test/popup.html` loads the real settings popup. They share `test/chrome-stub.js`
+(`chrome.storage` backed by localStorage), so a setting changed in the popup in one tab reaches the other tabs live.
+Serve the repo root (for example `python -m http.server 8766`) and open the page you need.
+On `test/harness.html`, URL parameters `lang=zh|en`, `tab=<index>`, `list=<ranking list id>` and `scroll=<px>` preset the view; the README screenshots
 are taken with headless Chrome/Edge, e.g.
 `msedge --headless=new --force-device-scale-factor=2 --window-size=1200,1080 --virtual-time-budget=10000 --screenshot=out.png "http://localhost:8766/test/harness.html?lang=en&tab=3&list=jcr2025"`.
 `src/stats.js` and `src/rankings.js` have no DOM dependencies and can be `require`d from Node.

@@ -2,14 +2,25 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "default_locale": "zh_CN",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "__MSG_extDescription__",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "__MSG_extName__",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": [
+    "storage"
+  ],
   "content_scripts": [
     {
       "matches": [
@@ -35,19 +46,56 @@
       ],
       "js": [
         "src/i18n.js",
+        "src/settings.js",
         "src/scraper.js",
         "src/rankings.js",
         "src/stats.js",
         "src/charts.js",
+        "src/badges.js",
         "src/rowmarks.js",
         "src/content.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://scholar.google.com/scholar*",
+        "https://scholar.google.com.hk/scholar*",
+        "https://scholar.google.com.tw/scholar*",
+        "https://scholar.google.com.sg/scholar*",
+        "https://scholar.google.com.au/scholar*",
+        "https://scholar.google.co.uk/scholar*",
+        "https://scholar.google.co.jp/scholar*",
+        "https://scholar.google.co.kr/scholar*",
+        "https://scholar.google.ca/scholar*",
+        "https://scholar.google.de/scholar*",
+        "https://scholar.google.fr/scholar*",
+        "https://scholar.google.it/scholar*",
+        "https://scholar.google.es/scholar*",
+        "https://scholar.google.nl/scholar*",
+        "https://scholar.google.ch/scholar*",
+        "https://scholar.google.se/scholar*",
+        "https://scholar.google.cn/scholar*",
+        "https://scholar.google.co.in/scholar*",
+        "https://scholar.google.com.br/scholar*"
+      ],
+      "js": [
+        "src/i18n.js",
+        "src/settings.js",
+        "src/rankings.js",
+        "src/stats.js",
+        "src/badges.js",
+        "src/search.js"
       ],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/panel.css", "index/*"],
+      "resources": [
+        "src/panel.css",
+        "index/*"
+      ],
       "matches": [
         "https://scholar.google.com/*",
         "https://scholar.google.com.hk/*",
